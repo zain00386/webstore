@@ -25,6 +25,8 @@ const optionalInt = z.preprocess(
 export const catalogQuerySchema = z.object({
   q: z.preprocess(first, z.string().trim().max(100).optional().catch(undefined)),
   category: z.preprocess(list, z.array(z.string().regex(/^[a-z0-9-]{1,40}$/)).max(20).catch([])),
+  publisher: z.preprocess(list, z.array(z.string().trim().min(1).max(120)).max(20).catch([])),
+  author: z.preprocess(first, z.string().trim().min(1).max(200).optional().catch(undefined)),
   exam: z.preprocess(first, z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined)),
   min: optionalInt,
   max: optionalInt,
@@ -70,10 +72,12 @@ export type CatalogResult = {
 
 /** Filter, sort and paginate. Pure, so it can be unit tested and later mirrored in SQL. */
 export function queryCatalog(all: Book[], query: CatalogQuery): CatalogResult {
-  const { q, category, exam, min, max, sort, stock } = query;
+  const { q, category, publisher, author, exam, min, max, sort, stock } = query;
   const filtered = all.filter(
     (b) =>
       (!q || matchesSearch(b, q)) &&
+      (publisher.length === 0 || (b.publisher != null && publisher.includes(b.publisher))) &&
+      (!author || b.author === author) &&
       (stock !== "in" || b.stockQuantity > 0) &&
       (category.length === 0 || category.includes(b.categorySlug)) &&
       (!exam || b.exams.includes(exam)) &&
@@ -97,6 +101,8 @@ export function catalogHref(query: Partial<CatalogQuery>, overrides: Partial<Cat
   const params = new URLSearchParams();
   if (merged.q) params.set("q", merged.q);
   for (const c of merged.category ?? []) params.append("category", c);
+  for (const p of merged.publisher ?? []) params.append("publisher", p);
+  if (merged.author) params.set("author", merged.author);
   if (merged.exam) params.set("exam", merged.exam);
   if (merged.min != null) params.set("min", String(merged.min));
   if (merged.max != null) params.set("max", String(merged.max));

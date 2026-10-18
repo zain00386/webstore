@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { FilterForm, type FilterGroup, type FilterOption } from "./filter-form";
 
-export function MobileFilters(props: { query: CatalogQuery; exams: FilterGroup[]; categories: FilterOption[]; activeCount: number }) {
+export function MobileFilters(props: {
+  query: CatalogQuery;
+  exams: FilterGroup[];
+  categories: FilterOption[];
+  publishers?: FilterOption[];
+  activeCount: number;
+}) {
   const { activeCount, ...formProps } = props;
   return (
     <Sheet>

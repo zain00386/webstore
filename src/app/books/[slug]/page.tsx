@@ -5,10 +5,12 @@ import { notFound } from "next/navigation";
 import { RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { BookGallery } from "@/components/book/book-gallery";
 import { ShareButton } from "@/components/book/share-button";
-import { getCategory } from "@/config/categories";
 import { allExams } from "@/config/exams";
 import { deliveryOptions, siteConfig } from "@/config/site";
-import { getAllBooks, getBookBySlug, getRelatedBooks } from "@/data/catalog";
+import { relatedBooks } from "@/lib/catalog/selectors";
+import { getCatalogState } from "@/lib/db/catalog";
+import { productJsonLd } from "@/lib/seo/product-json-ld";
+import { SetupNotice } from "@/components/feedback/setup-notice";
 import { toCartItem } from "@/lib/cart/to-cart-item";
 import { formatPKR } from "@/lib/format";
 import { getStockStatus } from "@/lib/stock";
@@ -21,14 +23,24 @@ import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** All current books are prerendered at build time, so these pages load instantly. */
-export function generateStaticParams() {
-  return getAllBooks().map((b) => ({ slug: b.slug }));
+/** Active books at build time are prerendered; books added later render on first visit. */
+export async function generateStaticParams() {
+  const state = await getCatalogState();
+  // Cache Components needs at least one entry; the placeholder simply 404s.
+  if (state.status !== "ready" || state.catalog.books.length === 0) return [{ slug: "__placeholder__" }];
+  return state.catalog.books.map((b) => ({ slug: b.slug }));
+}
+
+async function findBook(slug: string) {
+  const state = await getCatalogState();
+  if (state.status !== "ready") return { state, book: undefined };
+  // The catalogue only contains ACTIVE books, so inactive or unknown slugs are not found.
+  return { state, book: state.catalog.books.find((b) => b.slug === slug) };
 }
 
 export async function generateMetadata({ params }: PageProps<"/books/[slug]">): Promise<Metadata> {
-  const book = getBookBySlug((await params).slug);
-  if (!book) return { title: "Book not found" };
+  const { book } = await findBook((await params).slug);
+  if (!book) return { title: "Book not found", robots: { index: false } };
   const description = book.description[0]?.slice(0, 160) ?? `${book.title}, ${formatPKR(book.price)}.`;
   return {
     title: book.title,
@@ -67,12 +79,20 @@ function BookDetailSkeleton() {
 }
 
 async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["params"] }) {
-  const book = getBookBySlug((await params).slug);
+  const { state, book } = await findBook((await params).slug);
+  if (state.status === "not-configured") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+        <SetupNotice problems={state.problems} />
+      </div>
+    );
+  }
   if (!book) notFound();
 
-  const category = getCategory(book.categorySlug);
-  const status = getStockStatus(book.stockQuantity);
-  const related = getRelatedBooks(book);
+  const category = state.catalog.categories.find((c) => c.slug === book.categorySlug);
+  const status = getStockStatus(book.stockQuantity, book.lowStockThreshold);
+  const related = relatedBooks(state.catalog.books, book);
+  const jsonLd = productJsonLd(book, category?.name);
   // Most specific exams first (e.g. "ISSB" before "ISSB & Armed Forces"), max 5 chips.
   const exams = [...allExams].reverse().filter((e) => book.exams.includes(e.slug)).slice(0, 5);
   const details = [
@@ -85,6 +105,11 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+      <script
+        type="application/ld+json"
+        // JSON-LD for Google; "<" is escaped so book text can never close the script tag.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+      />
       <Breadcrumbs
         items={[
           { label: "Home", href: "/" },

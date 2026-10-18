@@ -7,6 +7,8 @@ export type BookSummary = {
   price: number;
   compareAtPrice: number | null;
   stockQuantity: number;
+  /** "Low stock" shows at or below this count; null = never (no fake scarcity). */
+  lowStockThreshold: number | null;
   coverUrl: string | null;
 };
 

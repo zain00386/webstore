@@ -3,7 +3,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Building2, CalendarClock, ExternalLink, MapPin, Users } from "lucide-react";
-import { getAllBooks } from "@/data/catalog";
+import { booksForExam } from "@/lib/catalog/selectors";
+import { getCatalogState } from "@/lib/db/catalog";
 import { getPostBySlug, getPublishedPosts } from "@/data/posts";
 import { formatDate, safeExternalUrl } from "@/lib/safe-url";
 import { PostCard, PostKindBadge } from "@/components/blog/post-card";
@@ -69,7 +70,8 @@ async function PostDetail({ params }: { params: PageProps<"/blog/[slug]">["param
 
   const applyUrl = safeExternalUrl(post.vacancy?.applyUrl);
   const examSlug = post.vacancy?.examSlug;
-  const books = examSlug ? getAllBooks().filter((b) => b.exams.includes(examSlug)).slice(0, 4) : [];
+  const catalogState = examSlug ? await getCatalogState() : null;
+  const books = examSlug && catalogState?.status === "ready" ? booksForExam(catalogState.catalog.books, examSlug, 4) : [];
   const more = getPublishedPosts(post.kind)
     .filter((p) => p.slug !== post.slug)
     .slice(0, 3);

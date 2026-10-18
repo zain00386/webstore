@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CoverImage } from "./cover-image";
 
 /** Main cover plus clickable thumbnails ("look inside" / back cover) when a book has more than one photo. */
 export function BookGallery({ images, title }: { images: string[]; title: string }) {
@@ -13,22 +13,15 @@ export function BookGallery({ images, title }: { images: string[]; title: string
   return (
     <div className="space-y-3">
       <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-surface ring-1 ring-border">
-        {current ? (
-          <Image
-            key={current}
-            src={current}
-            alt={images.length > 1 ? `${title}, photo ${active + 1} of ${images.length}` : `Cover of ${title}`}
-            fill
-            priority={active === 0}
-            sizes="(min-width: 1024px) 420px, 100vw"
-            className="object-contain p-6 drop-shadow-xl"
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">
-            <BookOpen className="size-16" aria-hidden />
-            <span className="sr-only">No cover image</span>
-          </div>
-        )}
+        <CoverImage
+          key={current ?? "none"}
+          src={current ?? null}
+          alt={images.length > 1 ? `${title}, photo ${active + 1} of ${images.length}` : `Cover of ${title}`}
+          fill
+          priority={active === 0}
+          sizes="(min-width: 1024px) 420px, 100vw"
+          className="object-contain p-6 drop-shadow-xl"
+        />
       </div>
       {images.length > 1 && (
         <ul className="flex gap-2" aria-label="Book photos">

@@ -3,7 +3,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { categories } from "@/config/categories";
 import { examGroups, umbrellaExams } from "@/config/exams";
-import { getCategoryCounts, getExamCounts } from "@/data/catalog";
+import { categoryCounts as countCategories, examCounts as countExams } from "@/lib/catalog/selectors";
+import { getCatalogState } from "@/lib/db/catalog";
+import { SetupNotice } from "@/components/feedback/setup-notice";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 
 export const metadata: Metadata = {
@@ -24,9 +26,17 @@ function ExamLink({ href, label, count }: { href: string; label: string; count: 
   );
 }
 
-export default function ExamsPage() {
-  const examCounts = getExamCounts();
-  const categoryCounts = getCategoryCounts();
+export default async function ExamsPage() {
+  const state = await getCatalogState();
+  if (state.status === "not-configured") {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8">
+        <SetupNotice problems={state.problems} />
+      </div>
+    );
+  }
+  const examCounts = countExams(state.catalog.books);
+  const categoryCounts = countCategories(state.catalog.books);
   const academic = categories.filter(
     (c) => ["intermediate", "university", "masters", "english", "general-knowledge", "medicare", "children"].includes(c.slug) && categoryCounts.get(c.slug),
   );

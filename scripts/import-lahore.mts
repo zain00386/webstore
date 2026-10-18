@@ -11,7 +11,7 @@
  */
 import { readFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
-import { mapLahoreProduct, type ImportedBook, type LahoreProduct } from "../src/lib/catalog/lahore-import";
+import { lahoreCreatedAt, mapLahoreProduct, type ImportedBook, type LahoreProduct } from "../src/lib/catalog/lahore-import";
 import type { Database } from "../src/lib/supabase/database.types";
 import { categories } from "../src/config/categories";
 import { descriptionText, imageExtension, mapWithConcurrency, MAX_IMAGE_BYTES, parseImportArgs } from "./lib/import-helpers";
@@ -118,6 +118,7 @@ await mapWithConcurrency(toCreate, 4, async (book, i) => {
     gallery_paths: images.gallery,
     is_active: true,
     is_new_arrival: book.isNewArrival,
+    created_at: lahoreCreatedAt(book.sourceId),
   });
   if (error) {
     failed++;
@@ -139,6 +140,7 @@ for (const book of toUpdate) {
       price: book.price,
       compare_at_price: book.compareAtPrice,
       exam_tags: book.examTags,
+      created_at: lahoreCreatedAt(book.sourceId),
     })
     .eq("source_ref", book.sourceRef);
   if (error) notes.push(`${book.title}: update failed (${error.message})`);

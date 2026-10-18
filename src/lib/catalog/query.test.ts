@@ -17,6 +17,7 @@ const book = (over: Partial<Book>): Book => ({
   price: 500,
   compareAtPrice: null,
   stockQuantity: 10,
+  lowStockThreshold: null,
   coverUrl: null,
   images: [],
   isNewArrival: false,
@@ -60,6 +61,14 @@ describe("queryCatalog", () => {
     expect(run({ category: ["css-pms", "armed-forces"] }).total).toBe(2);
     expect(run({ exam: "mdcat-ecat" }).books[0].slug).toBe("ecat");
     expect(run({ min: "1000", max: "1600" }).books.map((b) => b.slug)).toEqual(["ecat"]);
+  });
+
+  it("filters by publisher and author", () => {
+    const mixed = [...books, book({ slug: "jwt", publisher: "JWT", author: "Hafiz Karim", sortOrder: 8 })];
+    expect(queryCatalog(mixed, parseCatalogQuery({ publisher: "JWT" })).books.map((b) => b.slug)).toEqual(["jwt"]);
+    expect(queryCatalog(mixed, parseCatalogQuery({ publisher: ["JWT", "Dogar Publishers"] })).total).toBe(4);
+    expect(queryCatalog(mixed, parseCatalogQuery({ author: "Hafiz Karim" })).total).toBe(1);
+    expect(catalogHref({ publisher: ["JWT"], author: "A B" })).toBe("/books?publisher=JWT&author=A+B");
   });
 
   it("filters to in-stock books only when asked", () => {

@@ -11,6 +11,10 @@ export function SortSelect({ query }: { query: CatalogQuery }) {
       {query.category.map((c) => (
         <input key={c} type="hidden" name="category" value={c} />
       ))}
+      {query.publisher.map((p) => (
+        <input key={p} type="hidden" name="publisher" value={p} />
+      ))}
+      {query.author && <input type="hidden" name="author" value={query.author} />}
       {query.exam && <input type="hidden" name="exam" value={query.exam} />}
       {query.min != null && <input type="hidden" name="min" value={query.min} />}
       {query.max != null && <input type="hidden" name="max" value={query.max} />}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mapLahoreProduct, toSlug, type LahoreProduct } from "./lahore-import";
+import { lahoreCreatedAt, mapLahoreProduct, toSlug, type LahoreProduct } from "./lahore-import";
 
 const base: LahoreProduct = {
   sourceId: 42,
@@ -52,6 +52,13 @@ describe("mapLahoreProduct", () => {
     const b = mapLahoreProduct({ ...base, slug: "Bad Slug!!", images: ["http://x/a.jpg"] }, cat)!;
     expect(b.slug).toBe("bad-slug");
     expect(b.imageUrl).toBeNull();
+  });
+});
+
+describe("lahoreCreatedAt", () => {
+  it("keeps Lahore order and stays in the past", () => {
+    expect(lahoreCreatedAt(49400) > lahoreCreatedAt(100)).toBe(true);
+    expect(Date.parse(lahoreCreatedAt(60000))).toBeLessThan(Date.parse("2026-10-18"));
   });
 });
 

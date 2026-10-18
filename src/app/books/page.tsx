@@ -2,25 +2,47 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { SearchX, X } from "lucide-react";
-import { categories, getCategory } from "@/config/categories";
 import { examGroups, getExam, umbrellaExams, type ExamDef } from "@/config/exams";
-import { getAllBooks, getCategoryCounts, getExamCounts } from "@/data/catalog";
 import { catalogHref, parseCatalogQuery, queryCatalog, type CatalogQuery } from "@/lib/catalog/query";
+import { categoryCounts, examCounts as countExams, valueOptions } from "@/lib/catalog/selectors";
+import { getCatalogState, type Catalog } from "@/lib/db/catalog";
 import { BookGridSkeleton } from "@/components/book/book-card-skeleton";
 import { BookGrid } from "@/components/book/shop-book-card";
 import { FilterForm } from "@/components/catalog/filter-form";
 import { MobileFilters } from "@/components/catalog/mobile-filters";
 import { SortSelect } from "@/components/catalog/sort-select";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { SetupNotice } from "@/components/feedback/setup-notice";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { Pagination } from "@/components/layout/pagination";
 import { Button } from "@/components/ui/button";
 
-export const metadata: Metadata = {
-  title: "All books",
-  description:
-    "Browse CSS, PMS, FPSC, PPSC, NTS, MDCAT, ECAT, ISSB, job test, law and academic books. Delivery all over Pakistan.",
-};
+const DEFAULT_DESCRIPTION =
+  "Browse CSS, PMS, FPSC, PPSC, NTS, MDCAT, ECAT, ISSB, job test, law and academic books. Delivery all over Pakistan.";
+
+/**
+ * Exam and single-category pages are useful in Google; searches and
+ * multi-filter combinations are not, so those are marked noindex.
+ */
+export async function generateMetadata({ searchParams }: PageProps<"/books">): Promise<Metadata> {
+  const query = parseCatalogQuery(await searchParams);
+  const exam = getExam(query.exam);
+  const onlyExam = exam && !query.q && query.category.length === 0 && query.page === 1;
+  const filtered = Boolean(query.q || query.category.length || query.publisher.length || query.author || query.min || query.max || query.stock || query.sort !== "newest");
+  if (onlyExam && !filtered) {
+    return {
+      title: `${exam.label} books`,
+      description: exam.intro ?? DEFAULT_DESCRIPTION,
+      alternates: { canonical: `/books?exam=${exam.slug}` },
+    };
+  }
+  return {
+    title: query.q ? `Search: ${query.q}` : "All books",
+    description: DEFAULT_DESCRIPTION,
+    alternates: { canonical: "/books" },
+    robots: filtered || query.page > 1 || exam ? { index: false, follow: true } : undefined,
+  };
+}
 
 export default function BooksPage({ searchParams }: PageProps<"/books">) {
   return (
@@ -29,7 +51,7 @@ export default function BooksPage({ searchParams }: PageProps<"/books">) {
       {/* searchParams is only known per request, so results stream in behind a skeleton. */}
       <Suspense fallback={<CatalogSkeleton />}>
         {searchParams.then((params) => (
-          <Catalog query={parseCatalogQuery(params)} />
+          <CatalogLoader query={parseCatalogQuery(params)} />
         ))}
       </Suspense>
     </div>
@@ -45,34 +67,54 @@ function CatalogSkeleton() {
   );
 }
 
-function Catalog({ query }: { query: CatalogQuery }) {
-  const result = queryCatalog(getAllBooks(), query);
-  const counts = getCategoryCounts();
-  const examCounts = getExamCounts();
+async function CatalogLoader({ query }: { query: CatalogQuery }) {
+  const state = await getCatalogState();
+  if (state.status === "not-configured") {
+    return (
+      <>
+        <h1 className="mb-6 text-3xl font-semibold tracking-tight">All books</h1>
+        <SetupNotice problems={state.problems} />
+      </>
+    );
+  }
+  return <CatalogView catalog={state.catalog} query={query} />;
+}
+
+function CatalogView({ catalog, query }: { catalog: Catalog; query: CatalogQuery }) {
+  const result = queryCatalog(catalog.books, query);
+  const counts = categoryCounts(catalog.books);
+  const exCounts = countExams(catalog.books);
   const toOptions = (list: ExamDef[]) =>
-    list
-      .filter((e) => examCounts.get(e.slug))
-      .map((e) => ({ value: e.slug, label: e.label, count: examCounts.get(e.slug) }));
+    list.filter((e) => exCounts.get(e.slug)).map((e) => ({ value: e.slug, label: e.label, count: exCounts.get(e.slug) }));
   const exams = [
     { title: "Popular", options: toOptions(umbrellaExams) },
     ...examGroups.map((g) => ({ title: g.title, options: toOptions(g.exams) })),
   ].filter((g) => g.options.length > 0);
-  const categoryOptions = categories
+  const categoryOptions = catalog.categories
     .filter((c) => counts.get(c.slug))
     .map((c) => ({ value: c.slug, label: c.name, count: counts.get(c.slug) }));
+  // Only offer publisher choice once there's more than one publisher in stock.
+  const publisherOptions = valueOptions(catalog.books, (b) => b.publisher).map((p) => ({ value: p.value, label: p.value, count: p.count }));
+  const publishers = publisherOptions.length > 1 ? publisherOptions : [];
+  const categoryName = (slug: string) => catalog.categories.find((c) => c.slug === slug)?.name ?? slug;
 
   const exam = getExam(query.exam);
   const examLabel = exam?.label;
-  const singleCategory = query.category.length === 1 ? getCategory(query.category[0])?.name : undefined;
+  const singleCategory = query.category.length === 1 ? categoryName(query.category[0]) : undefined;
   const heading = query.q ? `Results for “${query.q}”` : (examLabel ?? singleCategory ?? "All books");
 
   const chips = [
     ...(query.q ? [{ label: `“${query.q}”`, href: catalogHref(query, { q: undefined, page: 1 }) }] : []),
     ...(examLabel ? [{ label: examLabel, href: catalogHref(query, { exam: undefined, page: 1 }) }] : []),
     ...query.category.map((c) => ({
-      label: getCategory(c)?.name ?? c,
+      label: categoryName(c),
       href: catalogHref(query, { category: query.category.filter((x) => x !== c), page: 1 }),
     })),
+    ...query.publisher.map((p) => ({
+      label: p,
+      href: catalogHref(query, { publisher: query.publisher.filter((x) => x !== p), page: 1 }),
+    })),
+    ...(query.author ? [{ label: query.author, href: catalogHref(query, { author: undefined, page: 1 }) }] : []),
     ...(query.stock === "in" ? [{ label: "In stock", href: catalogHref(query, { stock: undefined, page: 1 }) }] : []),
     ...(query.min != null || query.max != null
       ? [
@@ -84,6 +126,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
       : []),
   ];
   const filterKey = catalogHref(query, { page: 1 });
+  const filterProps = { query, exams, categories: categoryOptions, publishers };
 
   return (
     <>
@@ -96,7 +139,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
           {exam?.intro && !query.q && <p className="mt-3 max-w-2xl text-sm leading-relaxed">{exam.intro}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <MobileFilters key={`m-${filterKey}`} query={query} exams={exams} categories={categoryOptions} activeCount={chips.length} />
+          <MobileFilters key={`m-${filterKey}`} {...filterProps} activeCount={chips.length} />
           <SortSelect key={`s-${filterKey}`} query={query} />
         </div>
       </div>
@@ -126,7 +169,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
       <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
         <aside className="hidden lg:block" aria-label="Filters">
           <div className="sticky top-24 max-h-[calc(100svh-7rem)] overflow-y-auto rounded-2xl bg-surface p-4 ring-1 ring-border">
-            <FilterForm key={`d-${filterKey}`} query={query} exams={exams} categories={categoryOptions} idPrefix="filter" autoSubmit />
+            <FilterForm key={`d-${filterKey}`} {...filterProps} idPrefix="filter" autoSubmit />
           </div>
         </aside>
 
@@ -134,11 +177,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
           {result.books.length > 0 ? (
             <>
               <BookGrid books={result.books} priorityCount={4} />
-              <Pagination
-                page={result.page}
-                pageCount={result.pageCount}
-                hrefFor={(page) => catalogHref(query, { page })}
-              />
+              <Pagination page={result.page} pageCount={result.pageCount} hrefFor={(page) => catalogHref(query, { page })} />
             </>
           ) : (
             <EmptyState

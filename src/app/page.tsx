@@ -3,9 +3,11 @@ import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } fr
 import { categories } from "@/config/categories";
 import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
 import { umbrellaExams, type ExamDef } from "@/config/exams";
-import { getAllBooks, getBooksForExam, getCategoryCounts, getExamCounts } from "@/data/catalog";
 import { getPublishedPosts } from "@/data/posts";
-import { discountPercent, formatPKR, whatsappLink } from "@/lib/format";
+import { biggestDiscounts, booksForExam, categoryCounts, examCounts, newArrivals } from "@/lib/catalog/selectors";
+import { getCatalogState } from "@/lib/db/catalog";
+import { formatPKR, whatsappLink } from "@/lib/format";
+import { SetupNotice } from "@/components/feedback/setup-notice";
 import { PostCard } from "@/components/blog/post-card";
 import { BookGrid, BookRow } from "@/components/book/shop-book-card";
 import { TrustRow } from "@/components/store/trust-row";
@@ -22,22 +24,20 @@ function ViewAll({ href, label = "View all" }: { href: string; label?: string })
   );
 }
 
-export default function HomePage() {
-  const books = getAllBooks();
-  const newArrivals = books.filter((b) => b.isNewArrival).sort((a, b) => b.sortOrder - a.sortOrder).slice(0, 10);
-  const onSale = books
-    .filter((b) => discountPercent(b.price, b.compareAtPrice))
-    .sort((a, b) => (discountPercent(b.price, b.compareAtPrice) ?? 0) - (discountPercent(a.price, a.compareAtPrice) ?? 0))
-    .slice(0, 10);
-  const counts = getCategoryCounts();
+export default async function HomePage() {
+  const state = await getCatalogState();
+  const books = state.status === "ready" ? state.catalog.books : [];
+  const newBooks = newArrivals(books, 10);
+  const onSale = biggestDiscounts(books, 10);
+  const counts = categoryCounts(books);
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
   const vacancies = getPublishedPosts("vacancy").slice(0, 3);
-  const examCounts = getExamCounts();
+  const exCounts = examCounts(books);
   // Rows of books per popular exam (only exams that have books).
   const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
     .map((slug) => umbrellaExams.find((e) => e.slug === slug))
-    .filter((e): e is ExamDef => Boolean(e && examCounts.get(e.slug)))
-    .map((exam) => ({ exam, books: getBooksForExam(exam.slug, 5) }));
+    .filter((e): e is ExamDef => Boolean(e && exCounts.get(e.slug)))
+    .map((exam) => ({ exam, books: booksForExam(books, exam.slug, 5) }));
 
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
@@ -60,7 +60,7 @@ export default function HomePage() {
           </p>
           <Button asChild size="pill">
             <Link href="/books">
-              Browse {books.length} books <ArrowRight data-icon="inline-end" aria-hidden />
+              Browse {books.length > 0 ? `${books.length} books` : "books"} <ArrowRight data-icon="inline-end" aria-hidden />
             </Link>
           </Button>
         </div>
@@ -133,10 +133,12 @@ export default function HomePage() {
 
       <TrustRow />
 
-      {newArrivals.length > 0 && (
+      {state.status === "not-configured" && <SetupNotice problems={state.problems} />}
+
+      {newBooks.length > 0 && (
         <section aria-labelledby="new-title">
           <SectionHeading id="new-title" eyebrow="Just in" title="New arrivals" action={<ViewAll href="/books" />} />
-          <BookGrid books={newArrivals} priorityCount={2} />
+          <BookGrid books={newBooks} priorityCount={2} />
         </section>
       )}
 
@@ -162,7 +164,7 @@ export default function HomePage() {
           <SectionHeading
             id={`row-${exam.slug}`}
             title={exam.label}
-            description={`${examCounts.get(exam.slug)} books`}
+            description={`${exCounts.get(exam.slug)} books`}
             action={<ViewAll href={`/books?exam=${exam.slug}`} />}
           />
           <BookRow books={rowBooks} />

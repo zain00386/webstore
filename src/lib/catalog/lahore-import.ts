@@ -50,6 +50,14 @@ export function toSlug(text: string): string {
     .replace(/-$/, "");
 }
 
+/**
+ * A stable "added" date for imported books that preserves the Lahore order
+ * (higher id = newer), and stays older than anything the owner adds later.
+ */
+export function lahoreCreatedAt(sourceId: number): string {
+  return new Date(Date.UTC(2026, 0, 1) + sourceId * 1000).toISOString();
+}
+
 /** Maps a Lahore product to our book shape, or null if it can't be sold (e.g. price 0). */
 export function mapLahoreProduct(
   p: LahoreProduct,

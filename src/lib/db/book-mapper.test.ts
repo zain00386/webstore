@@ -53,6 +53,12 @@ describe("mapBookRow", () => {
     expect(b.images[1]).toContain("/book-covers/lahore/pms-guide-2.jpg");
   });
 
+  it("uses the book's low-stock threshold, else the store's", () => {
+    expect(mapBookRow(row, URL_BASE).lowStockThreshold).toBeNull();
+    expect(mapBookRow(row, URL_BASE, 3).lowStockThreshold).toBe(3);
+    expect(mapBookRow({ ...row, low_stock_threshold: 1 }, URL_BASE, 3).lowStockThreshold).toBe(1);
+  });
+
   it("falls back to 'other' when the category was removed", () => {
     expect(mapBookRow({ ...row, categories: null }, URL_BASE).categorySlug).toBe("other");
   });

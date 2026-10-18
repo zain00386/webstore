@@ -12,6 +12,8 @@ type FilterFormProps = {
   query: CatalogQuery;
   exams: FilterGroup[];
   categories: FilterOption[];
+  /** Shown only when there is more than one publisher. */
+  publishers?: FilterOption[];
   idPrefix: string;
   /** Submit as soon as a checkbox/radio changes (desktop). */
   autoSubmit?: boolean;
@@ -25,7 +27,7 @@ const input = "size-4 accent-[var(--brand)]";
  * Plain GET form: filters live in the URL (shareable, back button works) and
  * still work if JavaScript fails. All values are re-validated on the server.
  */
-export function FilterForm({ query, exams, categories, idPrefix, autoSubmit }: FilterFormProps) {
+export function FilterForm({ query, exams, categories, publishers = [], idPrefix, autoSubmit }: FilterFormProps) {
   const submitOnChange = autoSubmit
     ? (e: React.ChangeEvent<HTMLFormElement>) => {
         if (e.target instanceof HTMLInputElement && e.target.type !== "number") e.currentTarget.requestSubmit();
@@ -78,6 +80,27 @@ export function FilterForm({ query, exams, categories, idPrefix, autoSubmit }: F
           </label>
         ))}
       </fieldset>
+
+      {publishers.length > 0 && (
+        <fieldset>
+          <legend className={fieldsetLegend}>Publisher</legend>
+          {publishers.map((p) => (
+            <label key={p.value} className={optionRow}>
+              <input
+                type="checkbox"
+                name="publisher"
+                value={p.value}
+                defaultChecked={query.publisher.includes(p.value)}
+                className={input}
+              />
+              <span className="flex-1">{p.label}</span>
+              {p.count != null && <span className="text-xs text-muted-foreground">{p.count}</span>}
+            </label>
+          ))}
+        </fieldset>
+      )}
+
+      {query.author && <input type="hidden" name="author" value={query.author} />}
 
       <fieldset>
         <legend className={fieldsetLegend}>Price (Rs.)</legend>

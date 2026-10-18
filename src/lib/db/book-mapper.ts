@@ -37,7 +37,8 @@ export function publicImageUrl(supabaseUrl: string, bucket: string, path: string
   return `${supabaseUrl}/storage/v1/object/public/${bucket}/${clean}`;
 }
 
-export function mapBookRow(row: BookRowWithCategory, supabaseUrl: string): Book {
+/** storeLowStockThreshold comes from store_settings; a book's own threshold overrides it. */
+export function mapBookRow(row: BookRowWithCategory, supabaseUrl: string, storeLowStockThreshold: number | null = null): Book {
   const cover = publicImageUrl(supabaseUrl, BOOK_COVERS_BUCKET, row.cover_image_path);
   const gallery = (row.gallery_paths ?? [])
     .map((p) => publicImageUrl(supabaseUrl, BOOK_COVERS_BUCKET, p))
@@ -58,6 +59,7 @@ export function mapBookRow(row: BookRowWithCategory, supabaseUrl: string): Book 
     price: Number(row.price),
     compareAtPrice: row.compare_at_price == null ? null : Number(row.compare_at_price),
     stockQuantity: row.stock_quantity,
+    lowStockThreshold: row.low_stock_threshold ?? storeLowStockThreshold,
     coverUrl: cover,
     images: cover ? [cover, ...gallery] : gallery,
     isNewArrival: row.is_new_arrival,
