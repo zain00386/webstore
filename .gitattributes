@@ -1,0 +1,6 @@
+# Keep LF line endings everywhere (avoids CRLF churn on Windows and keeps
+# supabase/setup-all.sql byte-identical to its generated version).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
