@@ -30,8 +30,9 @@ function categorySlugFor(sourceCategories: string[]): string {
 }
 
 const products = JSON.parse(readFileSync("data/import/lahore-products.json", "utf8").replace(/^﻿/, "")) as LahoreProduct[];
-let books = products.map((p) => mapLahoreProduct(p, categorySlugFor)).filter((b): b is ImportedBook => b !== null);
-if (options.limit) books = books.slice(0, options.limit);
+const sellable = products.map((p) => mapLahoreProduct(p, categorySlugFor)).filter((b): b is ImportedBook => b !== null);
+const skippedNoPrice = products.length - sellable.length;
+const books = options.limit ? sellable.slice(0, options.limit) : sellable;
 
 const { data: categoryRows, error: catError } = await db.from("categories").select("id, slug");
 if (catError) throw new Error(`Could not read categories (have you run the migrations?): ${catError.message}`);
@@ -45,7 +46,9 @@ const takenSlugs = new Map(existingRows.map((b) => [b.slug, b.source_ref]));
 const toCreate = books.filter((b) => !importedRefs.has(b.sourceRef));
 const toUpdate = options.update ? books.filter((b) => importedRefs.has(b.sourceRef)) : [];
 
-console.log(`\n${books.length} sellable books in the snapshot (${products.length - books.length} skipped: no price).`);
+console.log(
+  `\n${sellable.length} sellable books in the snapshot (${skippedNoPrice} skipped: no price)${options.limit ? `; processing the first ${books.length}` : ""}.`,
+);
 console.log(`${toCreate.length} new to import, ${books.length - toCreate.length} already imported${options.update ? ` (${toUpdate.length} will be refreshed)` : ""}.`);
 if (options.dryRun) {
   console.log("\nDry run: nothing was changed.");
