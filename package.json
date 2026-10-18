@@ -14,7 +14,8 @@
     "db:check": "tsx scripts/db-check.mts",
     "db:import": "tsx scripts/import-lahore.mts",
     "db:bundle": "tsx scripts/bundle-migrations.mts",
-    "db:create-admin": "tsx scripts/create-admin.mts"
+    "db:create-admin": "tsx scripts/create-admin.mts",
+    "db:change-admin-email": "tsx scripts/change-admin-email.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
