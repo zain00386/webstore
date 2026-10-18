@@ -5,7 +5,7 @@ export const BOOK_COVERS_BUCKET = "book-covers";
 
 /** Columns the shop pages need (never `search` or admin-only fields). */
 export const BOOK_PUBLIC_COLUMNS =
-  "id, slug, title, subtitle, author, publisher, edition, isbn, description, exam_tags, price, compare_at_price, stock_quantity, low_stock_threshold, cover_image_path, is_new_arrival, created_at, categories(slug)" as const;
+  "id, slug, title, subtitle, author, publisher, edition, isbn, description, exam_tags, price, compare_at_price, stock_quantity, low_stock_threshold, cover_image_path, gallery_paths, is_new_arrival, created_at, categories(slug)" as const;
 
 export type BookRowWithCategory = Pick<
   BookRow,
@@ -24,6 +24,7 @@ export type BookRowWithCategory = Pick<
   | "stock_quantity"
   | "low_stock_threshold"
   | "cover_image_path"
+  | "gallery_paths"
   | "is_new_arrival"
   | "created_at"
 > & { categories: { slug: string } | null };
@@ -38,6 +39,9 @@ export function publicImageUrl(supabaseUrl: string, bucket: string, path: string
 
 export function mapBookRow(row: BookRowWithCategory, supabaseUrl: string): Book {
   const cover = publicImageUrl(supabaseUrl, BOOK_COVERS_BUCKET, row.cover_image_path);
+  const gallery = (row.gallery_paths ?? [])
+    .map((p) => publicImageUrl(supabaseUrl, BOOK_COVERS_BUCKET, p))
+    .filter((u): u is string => Boolean(u));
   return {
     id: row.id,
     slug: row.slug,
@@ -55,7 +59,7 @@ export function mapBookRow(row: BookRowWithCategory, supabaseUrl: string): Book 
     compareAtPrice: row.compare_at_price == null ? null : Number(row.compare_at_price),
     stockQuantity: row.stock_quantity,
     coverUrl: cover,
-    images: cover ? [cover] : [],
+    images: cover ? [cover, ...gallery] : gallery,
     isNewArrival: row.is_new_arrival,
     sortOrder: Date.parse(row.created_at) || 0,
   };

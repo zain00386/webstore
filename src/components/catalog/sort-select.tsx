@@ -14,6 +14,7 @@ export function SortSelect({ query }: { query: CatalogQuery }) {
       {query.exam && <input type="hidden" name="exam" value={query.exam} />}
       {query.min != null && <input type="hidden" name="min" value={query.min} />}
       {query.max != null && <input type="hidden" name="max" value={query.max} />}
+      {query.stock && <input type="hidden" name="stock" value={query.stock} />}
       <label htmlFor="sort" className="text-sm text-muted-foreground">
         Sort
       </label>

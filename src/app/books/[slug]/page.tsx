@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { BookOpen, ShieldCheck, Truck } from "lucide-react";
+import { RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { BookGallery } from "@/components/book/book-gallery";
+import { ShareButton } from "@/components/book/share-button";
 import { getCategory } from "@/config/categories";
-import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
+import { allExams } from "@/config/exams";
+import { deliveryOptions, siteConfig } from "@/config/site";
 import { getAllBooks, getBookBySlug, getRelatedBooks } from "@/data/catalog";
 import { toCartItem } from "@/lib/cart/to-cart-item";
 import { formatPKR } from "@/lib/format";
@@ -71,7 +73,8 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
   const category = getCategory(book.categorySlug);
   const status = getStockStatus(book.stockQuantity);
   const related = getRelatedBooks(book);
-  const exams = examShortcuts.filter((e) => book.exams.includes(e.slug));
+  // Most specific exams first (e.g. "ISSB" before "ISSB & Armed Forces"), max 5 chips.
+  const exams = [...allExams].reverse().filter((e) => book.exams.includes(e.slug)).slice(0, 5);
   const details = [
     ["Publisher", book.publisher],
     ["Author", book.author],
@@ -92,23 +95,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
       />
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-12">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-surface ring-1 ring-border">
-          {book.coverUrl ? (
-            <Image
-              src={book.coverUrl}
-              alt={`Cover of ${book.title}`}
-              fill
-              priority
-              sizes="(min-width: 1024px) 420px, 100vw"
-              className="object-contain p-6 drop-shadow-xl"
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center text-muted-foreground">
-              <BookOpen className="size-16" aria-hidden />
-              <span className="sr-only">No cover image</span>
-            </div>
-          )}
-        </div>
+        <BookGallery images={book.images} title={book.title} />
 
         <div className="space-y-5">
           <div className="flex flex-wrap gap-2">
@@ -126,7 +113,10 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
           <div>
             <h1 className="text-2xl leading-tight font-semibold tracking-tight sm:text-3xl">{book.title}</h1>
             {book.subtitle && <p className="mt-2 text-sm leading-relaxed">{book.subtitle}</p>}
-            {book.publisher && <p className="mt-2 text-sm text-muted-foreground">{book.publisher}</p>}
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              {book.publisher && <p className="text-sm text-muted-foreground">{book.publisher}</p>}
+              <ShareButton title={book.title} path={`/books/${book.slug}`} />
+            </div>
           </div>
           <Price price={book.price} compareAt={book.compareAtPrice} size="lg" />
 
@@ -134,19 +124,37 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
             <PurchasePanel item={toCartItem(book)} phoneE164={siteConfig.phoneE164} />
           </div>
 
-          <ul className="max-w-md space-y-2 rounded-2xl bg-surface p-4 text-sm ring-1 ring-border">
-            <li className="flex gap-2.5">
-              <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>
-                {deliveryOptions.map((o) => `${o.label} ${formatPKR(o.charge)}`).join(" · ")}
-                <span className="block text-muted-foreground">Cash on Delivery with TCS / Leopards</span>
-              </span>
-            </li>
-            <li className="flex gap-2.5">
-              <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>Genuine book from the official Dogar Publishers branch</span>
-            </li>
-          </ul>
+          <section aria-labelledby="delivery-returns" className="max-w-md rounded-2xl bg-surface p-4 text-sm ring-1 ring-border">
+            <h2 id="delivery-returns" className="mb-3 font-semibold">
+              Delivery & returns
+            </h2>
+            <ul className="space-y-2.5">
+              {deliveryOptions.map((o) => (
+                <li key={o.id} className="flex gap-2.5">
+                  <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                  <span>
+                    <span className="font-medium">
+                      {o.label}: {formatPKR(o.charge)}
+                    </span>
+                    <span className="block text-muted-foreground">{o.note}</span>
+                  </span>
+                </li>
+              ))}
+              <li className="flex gap-2.5">
+                <RotateCcw className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                <span>
+                  Wrong or damaged book? Tell us within 5 business days.{" "}
+                  <Link href="/returns" className="underline">
+                    Returns policy
+                  </Link>
+                </span>
+              </li>
+              <li className="flex gap-2.5">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                <span>Genuine book from the official Dogar Publishers branch</span>
+              </li>
+            </ul>
+          </section>
         </div>
       </div>
 

@@ -54,27 +54,40 @@ if (options.dryRun) {
   process.exit(0);
 }
 
-/** Downloads the Lahore cover and stores our own copy. Falls back to the original link if that fails. */
-async function copyCover(book: ImportedBook): Promise<{ path: string | null; note?: string }> {
-  if (!book.imageUrl) return { path: null, note: "no image" };
+/** Downloads a Lahore image and stores our own copy. Falls back to the original link if that fails. */
+async function copyImage(url: string, baseName: string): Promise<{ path: string; note?: string }> {
   try {
-    const res = await fetch(book.imageUrl, { signal: AbortSignal.timeout(20_000) });
-    if (!res.ok) return { path: book.imageUrl, note: `image download failed (${res.status}), linked instead` };
+    const res = await fetch(url, { signal: AbortSignal.timeout(20_000) });
+    if (!res.ok) return { path: url, note: `image download failed (${res.status}), linked instead` };
     const ext = imageExtension(res.headers.get("content-type"));
-    if (!ext) return { path: book.imageUrl, note: "unsupported image type, linked instead" };
+    if (!ext) return { path: url, note: "unsupported image type, linked instead" };
     const bytes = new Uint8Array(await res.arrayBuffer());
-    if (bytes.byteLength > MAX_IMAGE_BYTES) return { path: book.imageUrl, note: "image over 2 MB, linked instead" };
-    const path = `lahore/${book.slug}.${ext}`;
+    if (bytes.byteLength > MAX_IMAGE_BYTES) return { path: url, note: "image over 2 MB, linked instead" };
+    const path = `lahore/${baseName}.${ext}`;
     const { error } = await db.storage.from("book-covers").upload(path, bytes, {
       contentType: res.headers.get("content-type") ?? undefined,
       upsert: true,
       cacheControl: "31536000",
     });
-    if (error) return { path: book.imageUrl, note: `upload failed (${error.message}), linked instead` };
+    if (error) return { path: url, note: `upload failed (${error.message}), linked instead` };
     return { path };
   } catch (e) {
-    return { path: book.imageUrl, note: `image error (${(e as Error).message}), linked instead` };
+    return { path: url, note: `image error (${(e as Error).message}), linked instead` };
   }
+}
+
+async function copyImages(book: ImportedBook, slug: string): Promise<{ cover: string | null; gallery: string[]; notes: string[] }> {
+  const notes: string[] = [];
+  if (!book.imageUrl) return { cover: null, gallery: [], notes: ["no image"] };
+  const cover = await copyImage(book.imageUrl, slug);
+  if (cover.note) notes.push(`cover: ${cover.note}`);
+  const gallery: string[] = [];
+  for (const [i, url] of book.galleryUrls.entries()) {
+    const img = await copyImage(url, `${slug}-${i + 2}`);
+    if (img.note) notes.push(`photo ${i + 2}: ${img.note}`);
+    gallery.push(img.path);
+  }
+  return { cover: cover.path, gallery, notes };
 }
 
 let created = 0;
@@ -84,8 +97,8 @@ const notes: string[] = [];
 await mapWithConcurrency(toCreate, 4, async (book, i) => {
   let slug = book.slug;
   if (takenSlugs.has(slug) && takenSlugs.get(slug) !== book.sourceRef) slug = `${slug}-${book.sourceId}`;
-  const cover = await copyCover(book);
-  if (cover.note) notes.push(`${book.title}: ${cover.note}`);
+  const images = await copyImages(book, slug);
+  for (const note of images.notes) notes.push(`${book.title}: ${note}`);
   const { error } = await db.from("books").insert({
     source_ref: book.sourceRef,
     slug,
@@ -98,7 +111,8 @@ await mapWithConcurrency(toCreate, 4, async (book, i) => {
     price: book.price,
     compare_at_price: book.compareAtPrice,
     stock_quantity: options.stock,
-    cover_image_path: cover.path,
+    cover_image_path: images.cover,
+    gallery_paths: images.gallery,
     is_active: true,
     is_new_arrival: book.isNewArrival,
   });

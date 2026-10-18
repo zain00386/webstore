@@ -24,7 +24,8 @@ console.log(`\nChecking Supabase project ${new URL(env.url).host}\n`);
 
 // 1. Tables exist (migration 0001)
 const cats = await server.from("categories").select("slug", { count: "exact", head: true });
-if (cats.error) {
+// A missing table can come back as "no error, count null" on head requests, so require a real count.
+if (cats.error || cats.count == null || cats.count === 0) {
   fail("Database tables not found", "Paste supabase/setup-all.sql into Supabase > SQL Editor and click Run (docs/database-setup.md, step 3).");
 } else {
   ok(`Tables exist (${cats.count} categories)`);
@@ -32,16 +33,16 @@ if (cats.error) {
 
 // 2. Visitor access is limited (migration 0002)
 const publicBooks = await visitor.from("books").select("id", { count: "exact", head: true });
-if (publicBooks.error) fail(`Visitors cannot read books: ${publicBooks.error.message}`);
+if (publicBooks.error || publicBooks.count == null) fail(`Visitors cannot read books${publicBooks.error ? `: ${publicBooks.error.message}` : " (books table not found)"}`);
 else ok(`Visitors can read active books (${publicBooks.count})`);
 
 const leakedOrders = await visitor.from("orders").select("id").limit(1);
 if (leakedOrders.error || (leakedOrders.data ?? []).length === 0) ok("Visitors cannot read orders");
-else fail("Visitors CAN read orders", "Run supabase/migrations/20261018000002_security.sql.");
+else fail("Visitors CAN read orders", "Paste supabase/setup-all.sql into the SQL Editor and click Run.");
 
 const leakedSettings = await visitor.from("store_settings").select("jazzcash_number").limit(1);
 if (leakedSettings.error || (leakedSettings.data ?? []).length === 0) ok("Visitors cannot read payment account settings");
-else fail("Visitors CAN read store_settings", "Run supabase/migrations/20261018000002_security.sql.");
+else fail("Visitors CAN read store_settings", "Paste supabase/setup-all.sql into the SQL Editor and click Run.");
 
 const settings = await visitor.rpc("get_public_settings");
 if (settings.error || !settings.data?.[0]) fail("Public settings are not readable", settings.error?.message);
@@ -49,7 +50,7 @@ else ok(`Public settings OK (Pakistan Post Rs. ${settings.data[0].pakistan_post_
 
 const write = await visitor.from("books").update({ price: 1 }).eq("slug", "__never__");
 if (write.error) ok("Visitors cannot change books");
-else fail("Visitors may be able to change books", "Run supabase/migrations/20261018000002_security.sql.");
+else fail("Visitors may be able to change books", "Paste supabase/setup-all.sql into the SQL Editor and click Run.");
 
 // 3. Storage (migration 0003)
 const buckets = await server.storage.listBuckets();
@@ -58,7 +59,7 @@ else {
   const names = buckets.data.map((b) => b.name);
   for (const b of ["book-covers", "post-images"]) {
     if (names.includes(b)) ok(`Storage bucket "${b}" exists`);
-    else fail(`Storage bucket "${b}" missing`, "Run supabase/migrations/20261018000003_storage.sql.");
+    else fail(`Storage bucket "${b}" missing`, "Paste supabase/setup-all.sql into the SQL Editor and click Run.");
   }
 }
 

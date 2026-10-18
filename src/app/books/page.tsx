@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { SearchX, X } from "lucide-react";
 import { categories, getCategory } from "@/config/categories";
-import { examShortcuts } from "@/config/site";
-import { getAllBooks, getCategoryCounts } from "@/data/catalog";
+import { examGroups, getExam, umbrellaExams, type ExamDef } from "@/config/exams";
+import { getAllBooks, getCategoryCounts, getExamCounts } from "@/data/catalog";
 import { catalogHref, parseCatalogQuery, queryCatalog, type CatalogQuery } from "@/lib/catalog/query";
 import { BookGridSkeleton } from "@/components/book/book-card-skeleton";
 import { BookGrid } from "@/components/book/shop-book-card";
@@ -48,12 +48,21 @@ function CatalogSkeleton() {
 function Catalog({ query }: { query: CatalogQuery }) {
   const result = queryCatalog(getAllBooks(), query);
   const counts = getCategoryCounts();
-  const exams = examShortcuts.map((e) => ({ value: e.slug, label: e.label }));
+  const examCounts = getExamCounts();
+  const toOptions = (list: ExamDef[]) =>
+    list
+      .filter((e) => examCounts.get(e.slug))
+      .map((e) => ({ value: e.slug, label: e.label, count: examCounts.get(e.slug) }));
+  const exams = [
+    { title: "Popular", options: toOptions(umbrellaExams) },
+    ...examGroups.map((g) => ({ title: g.title, options: toOptions(g.exams) })),
+  ].filter((g) => g.options.length > 0);
   const categoryOptions = categories
     .filter((c) => counts.get(c.slug))
     .map((c) => ({ value: c.slug, label: c.name, count: counts.get(c.slug) }));
 
-  const examLabel = examShortcuts.find((e) => e.slug === query.exam)?.label;
+  const exam = getExam(query.exam);
+  const examLabel = exam?.label;
   const singleCategory = query.category.length === 1 ? getCategory(query.category[0])?.name : undefined;
   const heading = query.q ? `Results for “${query.q}”` : (examLabel ?? singleCategory ?? "All books");
 
@@ -64,6 +73,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
       label: getCategory(c)?.name ?? c,
       href: catalogHref(query, { category: query.category.filter((x) => x !== c), page: 1 }),
     })),
+    ...(query.stock === "in" ? [{ label: "In stock", href: catalogHref(query, { stock: undefined, page: 1 }) }] : []),
     ...(query.min != null || query.max != null
       ? [
           {
@@ -83,6 +93,7 @@ function Catalog({ query }: { query: CatalogQuery }) {
           <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">
             {result.total} {result.total === 1 ? "book" : "books"}
           </p>
+          {exam?.intro && !query.q && <p className="mt-3 max-w-2xl text-sm leading-relaxed">{exam.intro}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <MobileFilters key={`m-${filterKey}`} query={query} exams={exams} categories={categoryOptions} activeCount={chips.length} />

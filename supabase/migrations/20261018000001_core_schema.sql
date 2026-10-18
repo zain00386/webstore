@@ -63,6 +63,8 @@ create table public.books (
   low_stock_threshold integer check (low_stock_threshold >= 0),
   -- Path inside the "book-covers" storage bucket, or a full https:// URL.
   cover_image_path text check (length(cover_image_path) <= 500),
+  -- Extra photos shown after the cover ("look inside", back cover); same path rules.
+  gallery_paths text[] not null default '{}' check (cardinality(gallery_paths) <= 12),
   is_active boolean not null default true,
   is_new_arrival boolean not null default false,
   -- Where an imported book came from, e.g. "lahore:49400". Makes imports repeatable.

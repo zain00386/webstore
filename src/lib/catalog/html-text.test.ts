@@ -37,7 +37,8 @@ describe("deriveExams", () => {
     expect(deriveExams("PPSC Combined Competitive Examination PMS Guide", "css-pms")).toEqual(
       expect.arrayContaining(["css-pms", "fpsc-ppsc"]),
     );
-    expect(deriveExams("ISSB Tests Preparation Guide", "armed-forces")).toEqual(["armed-forces"]);
+    expect(deriveExams("ISSB Tests Preparation Guide", "armed-forces")).toEqual(["armed-forces", "issb"]);
+    expect(deriveExams("Punjab Police Sub-Inspector Guide", "job-tests")).toEqual(expect.arrayContaining(["jobs", "police"]));
     expect(deriveExams("Kids Coloring Book", "children")).toEqual([]);
   });
 });

@@ -42,6 +42,7 @@ export type BookRow = Timestamps & {
   stock_quantity: number;
   low_stock_threshold: number | null;
   cover_image_path: string | null;
+  gallery_paths: string[];
   is_active: boolean;
   is_new_arrival: boolean;
   source_ref: string | null;

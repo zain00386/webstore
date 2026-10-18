@@ -28,6 +28,8 @@ export const catalogQuerySchema = z.object({
   exam: z.preprocess(first, z.string().regex(/^[a-z0-9-]{1,40}$/).optional().catch(undefined)),
   min: optionalInt,
   max: optionalInt,
+  /** "in" = only books that are in stock. */
+  stock: z.preprocess(first, z.literal("in").optional().catch(undefined)),
   sort: z.preprocess(
     first,
     z.enum(sortOptions.map((o) => o.value) as [SortValue, ...SortValue[]]).catch("newest"),
@@ -68,10 +70,11 @@ export type CatalogResult = {
 
 /** Filter, sort and paginate. Pure, so it can be unit tested and later mirrored in SQL. */
 export function queryCatalog(all: Book[], query: CatalogQuery): CatalogResult {
-  const { q, category, exam, min, max, sort } = query;
+  const { q, category, exam, min, max, sort, stock } = query;
   const filtered = all.filter(
     (b) =>
       (!q || matchesSearch(b, q)) &&
+      (stock !== "in" || b.stockQuantity > 0) &&
       (category.length === 0 || category.includes(b.categorySlug)) &&
       (!exam || b.exams.includes(exam)) &&
       (min == null || b.price >= min) &&
@@ -97,6 +100,7 @@ export function catalogHref(query: Partial<CatalogQuery>, overrides: Partial<Cat
   if (merged.exam) params.set("exam", merged.exam);
   if (merged.min != null) params.set("min", String(merged.min));
   if (merged.max != null) params.set("max", String(merged.max));
+  if (merged.stock) params.set("stock", merged.stock);
   if (merged.sort && merged.sort !== "newest") params.set("sort", merged.sort);
   if (merged.page && merged.page > 1) params.set("page", String(merged.page));
   const qs = params.toString();

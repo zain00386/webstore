@@ -2,11 +2,13 @@ import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } from "lucide-react";
 import { categories } from "@/config/categories";
 import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
-import { getAllBooks, getCategoryCounts } from "@/data/catalog";
+import { umbrellaExams, type ExamDef } from "@/config/exams";
+import { getAllBooks, getBooksForExam, getCategoryCounts, getExamCounts } from "@/data/catalog";
 import { getPublishedPosts } from "@/data/posts";
 import { discountPercent, formatPKR, whatsappLink } from "@/lib/format";
 import { PostCard } from "@/components/blog/post-card";
-import { BookGrid } from "@/components/book/shop-book-card";
+import { BookGrid, BookRow } from "@/components/book/shop-book-card";
+import { TrustRow } from "@/components/store/trust-row";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OpenStatus } from "@/components/store/open-status";
 import { Badge } from "@/components/ui/badge";
@@ -30,6 +32,12 @@ export default function HomePage() {
   const counts = getCategoryCounts();
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
   const vacancies = getPublishedPosts("vacancy").slice(0, 3);
+  const examCounts = getExamCounts();
+  // Rows of books per popular exam (only exams that have books).
+  const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
+    .map((slug) => umbrellaExams.find((e) => e.slug === slug))
+    .filter((e): e is ExamDef => Boolean(e && examCounts.get(e.slug)))
+    .map((exam) => ({ exam, books: getBooksForExam(exam.slug, 5) }));
 
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
@@ -112,8 +120,18 @@ export default function HomePage() {
               </Link>
             </li>
           ))}
+          <li className="shrink-0">
+            <Link
+              href="/exams"
+              className="inline-flex h-10 items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85"
+            >
+              All exams <ArrowRight className="size-4" aria-hidden />
+            </Link>
+          </li>
         </ul>
       </section>
+
+      <TrustRow />
 
       {newArrivals.length > 0 && (
         <section aria-labelledby="new-title">
@@ -138,6 +156,18 @@ export default function HomePage() {
           ))}
         </ul>
       </section>
+
+      {examRows.map(({ exam, books: rowBooks }) => (
+        <section key={exam.slug} aria-labelledby={`row-${exam.slug}`}>
+          <SectionHeading
+            id={`row-${exam.slug}`}
+            title={exam.label}
+            description={`${examCounts.get(exam.slug)} books`}
+            action={<ViewAll href={`/books?exam=${exam.slug}`} />}
+          />
+          <BookRow books={rowBooks} />
+        </section>
+      ))}
 
       <section aria-labelledby="categories-title">
         <SectionHeading id="categories-title" title="Shop by category" />

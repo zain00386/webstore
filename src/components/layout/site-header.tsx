@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Phone, ShoppingBag } from "lucide-react";
+import { MessageCircle, Phone, ShoppingBag } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { whatsappLink } from "@/lib/format";
 import { CartCount } from "@/components/cart/cart-count";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
@@ -23,6 +24,16 @@ export function SiteHeader() {
               <span className="font-semibold">{siteConfig.phoneDisplay}</span>
             </span>
           </a>
+          <Button asChild variant="outline" size="icon" className="text-whatsapp">
+            <a
+              href={whatsappLink(siteConfig.phoneE164)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`WhatsApp us on ${siteConfig.phoneDisplay} (opens in a new tab)`}
+            >
+              <MessageCircle aria-hidden />
+            </a>
+          </Button>
           <Button asChild variant="default" size="default">
             <Link href="/cart">
               <ShoppingBag aria-hidden />

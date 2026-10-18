@@ -28,7 +28,10 @@ export type ImportedBook = {
   price: number;
   compareAtPrice: number | null;
   isNewArrival: boolean;
+  /** Cover (first image). */
   imageUrl: string | null;
+  /** Extra photos after the cover ("look inside", back cover). */
+  galleryUrls: string[];
 };
 
 /** "... by Dogar Publishers", "... by Dogar & Medicare Books" etc. The publisher is shown separately. */
@@ -60,7 +63,8 @@ export function mapLahoreProduct(
   const short = htmlToTextBlocks(p.shortDescription);
   const long = htmlToTextBlocks(p.description);
   const slug = SLUG.test(p.slug) && p.slug.length <= 200 ? p.slug : toSlug(p.slug || title);
-  const imageUrl = p.images.find((u) => u.startsWith("https://")) ?? null;
+  const httpsImages = [...new Set(p.images.filter((u) => u.startsWith("https://")))];
+  const imageUrl = httpsImages[0] ?? null;
   return {
     sourceRef: `lahore:${p.sourceId}`,
     sourceId: p.sourceId,
@@ -75,5 +79,6 @@ export function mapLahoreProduct(
     compareAtPrice: p.regularPrice > p.price ? p.regularPrice : null,
     isNewArrival: p.categories.some((c) => c.startsWith("New Arrivals")),
     imageUrl,
+    galleryUrls: httpsImages.slice(1, 13),
   };
 }

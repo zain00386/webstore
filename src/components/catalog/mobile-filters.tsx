@@ -4,9 +4,9 @@ import { SlidersHorizontal } from "lucide-react";
 import type { CatalogQuery } from "@/lib/catalog/query";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { FilterForm, type FilterOption } from "./filter-form";
+import { FilterForm, type FilterGroup, type FilterOption } from "./filter-form";
 
-export function MobileFilters(props: { query: CatalogQuery; exams: FilterOption[]; categories: FilterOption[]; activeCount: number }) {
+export function MobileFilters(props: { query: CatalogQuery; exams: FilterGroup[]; categories: FilterOption[]; activeCount: number }) {
   const { activeCount, ...formProps } = props;
   return (
     <Sheet>

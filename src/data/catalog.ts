@@ -39,7 +39,7 @@ function toBook(p: LahoreProduct): Book | null {
     compareAtPrice: b.compareAtPrice,
     stockQuantity: PREVIEW_STOCK,
     coverUrl: b.imageUrl,
-    images: b.imageUrl ? [b.imageUrl] : [],
+    images: b.imageUrl ? [b.imageUrl, ...b.galleryUrls] : [],
     isNewArrival: b.isNewArrival,
     sortOrder: b.sourceId,
   };
@@ -59,6 +59,19 @@ export function getBookBySlug(slug: string): Book | undefined {
 export function getRelatedBooks(book: Book, limit = 4): Book[] {
   return getAllBooks()
     .filter((b) => b.categorySlug === book.categorySlug && b.slug !== book.slug)
+    .sort((a, b) => b.sortOrder - a.sortOrder)
+    .slice(0, limit);
+}
+
+export function getExamCounts(): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const b of getAllBooks()) for (const e of b.exams) counts.set(e, (counts.get(e) ?? 0) + 1);
+  return counts;
+}
+
+export function getBooksForExam(examSlug: string, limit: number): Book[] {
+  return getAllBooks()
+    .filter((b) => b.exams.includes(examSlug))
     .sort((a, b) => b.sortOrder - a.sortOrder)
     .slice(0, limit);
 }

@@ -42,6 +42,12 @@ describe("mapLahoreProduct", () => {
     expect(mapLahoreProduct({ ...base, regularPrice: 1500 }, cat)!.compareAtPrice).toBeNull();
   });
 
+  it("keeps extra photos for the gallery, without duplicates", () => {
+    const b = mapLahoreProduct({ ...base, images: ["https://x/a.jpg", "https://x/b.jpg", "https://x/a.jpg"] }, cat)!;
+    expect(b.imageUrl).toBe("https://x/a.jpg");
+    expect(b.galleryUrls).toEqual(["https://x/b.jpg"]);
+  });
+
   it("repairs invalid slugs and ignores non-https images", () => {
     const b = mapLahoreProduct({ ...base, slug: "Bad Slug!!", images: ["http://x/a.jpg"] }, cat)!;
     expect(b.slug).toBe("bad-slug");

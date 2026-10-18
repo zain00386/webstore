@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Clock, MapPin, Phone } from "lucide-react";
+import { umbrellaExams } from "@/config/exams";
 import { deliveryOptions, footerLinks, siteConfig } from "@/config/site";
 import { formatPKR } from "@/lib/format";
 import { Logo } from "./logo";
@@ -7,7 +8,7 @@ import { Logo } from "./logo";
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-t border-border bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-4 lg:px-8">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
         <div className="space-y-3">
           <Logo />
           <p className="text-sm text-muted-foreground">
@@ -53,6 +54,24 @@ export function SiteFooter() {
                 {option.note}
               </li>
             ))}
+          </ul>
+        </div>
+
+        <div>
+          <h2 className="mb-3 text-sm font-semibold">Popular exams</h2>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            {umbrellaExams.map((e) => (
+              <li key={e.slug}>
+                <Link href={`/books?exam=${e.slug}`} className="hover:text-foreground">
+                  {e.label}
+                </Link>
+              </li>
+            ))}
+            <li>
+              <Link href="/exams" className="font-medium text-foreground hover:underline">
+                All exams
+              </Link>
+            </li>
           </ul>
         </div>
 

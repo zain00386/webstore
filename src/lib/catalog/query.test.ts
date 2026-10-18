@@ -62,6 +62,13 @@ describe("queryCatalog", () => {
     expect(run({ min: "1000", max: "1600" }).books.map((b) => b.slug)).toEqual(["ecat"]);
   });
 
+  it("filters to in-stock books only when asked", () => {
+    const withSoldOut = [...books, book({ slug: "gone", stockQuantity: 0, sortOrder: 9 })];
+    expect(queryCatalog(withSoldOut, parseCatalogQuery({})).total).toBe(4);
+    expect(queryCatalog(withSoldOut, parseCatalogQuery({ stock: "in" })).total).toBe(3);
+    expect(parseCatalogQuery({ stock: "everything" }).stock).toBeUndefined();
+  });
+
   it("sorts", () => {
     expect(run({}).books.map((b) => b.slug)).toEqual(["pms", "ecat", "issb"]);
     expect(run({ sort: "price-asc" }).books[0].slug).toBe("issb");

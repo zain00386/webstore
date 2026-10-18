@@ -1,4 +1,4 @@
-import { BookOpen, Home, Megaphone, ShoppingBag, type LucideIcon } from "lucide-react";
+import { BookOpen, GraduationCap, Home, Megaphone, ShoppingBag, type LucideIcon } from "lucide-react";
 
 export type NavItem = { label: string; href: string; icon: LucideIcon };
 
@@ -6,6 +6,7 @@ export type NavItem = { label: string; href: string; icon: LucideIcon };
 export const mainNav: NavItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Books", href: "/books", icon: BookOpen },
+  { label: "Exams", href: "/exams", icon: GraduationCap },
   { label: "Vacancies", href: "/blog", icon: Megaphone },
   { label: "Cart", href: "/cart", icon: ShoppingBag },
 ];

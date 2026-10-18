@@ -6,10 +6,11 @@ import type { CatalogQuery } from "@/lib/catalog/query";
 import { Button } from "@/components/ui/button";
 
 export type FilterOption = { value: string; label: string; count?: number };
+export type FilterGroup = { title: string; options: FilterOption[] };
 
 type FilterFormProps = {
   query: CatalogQuery;
-  exams: FilterOption[];
+  exams: FilterGroup[];
   categories: FilterOption[];
   idPrefix: string;
   /** Submit as soon as a checkbox/radio changes (desktop). */
@@ -36,17 +37,28 @@ export function FilterForm({ query, exams, categories, idPrefix, autoSubmit }: F
       {query.q && <input type="hidden" name="q" value={query.q} />}
       {query.sort !== "newest" && <input type="hidden" name="sort" value={query.sort} />}
 
+      <label className={`${optionRow} font-medium`}>
+        <input type="checkbox" name="stock" value="in" defaultChecked={query.stock === "in"} className={input} />
+        In stock only
+      </label>
+
       <fieldset>
         <legend className={fieldsetLegend}>Exam</legend>
         <label className={optionRow}>
           <input type="radio" name="exam" value="" defaultChecked={!query.exam} className={input} />
           All exams
         </label>
-        {exams.map((e) => (
-          <label key={e.value} className={optionRow}>
-            <input type="radio" name="exam" value={e.value} defaultChecked={query.exam === e.value} className={input} />
-            {e.label}
-          </label>
+        {exams.map((group) => (
+          <div key={group.title} className="mt-2">
+            <p className="px-2 pt-1 pb-0.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{group.title}</p>
+            {group.options.map((e) => (
+              <label key={e.value} className={optionRow}>
+                <input type="radio" name="exam" value={e.value} defaultChecked={query.exam === e.value} className={input} />
+                <span className="flex-1">{e.label}</span>
+                {e.count != null && <span className="text-xs text-muted-foreground">{e.count}</span>}
+              </label>
+            ))}
+          </div>
         ))}
       </fieldset>
 

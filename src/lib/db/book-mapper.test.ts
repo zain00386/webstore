@@ -19,6 +19,7 @@ const row: BookRowWithCategory = {
   stock_quantity: 4,
   low_stock_threshold: null,
   cover_image_path: "lahore/pms guide.png",
+  gallery_paths: ["lahore/pms-guide-2.jpg"],
   is_new_arrival: true,
   created_at: "2026-10-18T10:00:00Z",
   categories: { slug: "css-pms" },
@@ -48,6 +49,8 @@ describe("mapBookRow", () => {
       isNewArrival: true,
     });
     expect(b.coverUrl).toContain("/book-covers/lahore/pms%20guide.png");
+    expect(b.images).toHaveLength(2);
+    expect(b.images[1]).toContain("/book-covers/lahore/pms-guide-2.jpg");
   });
 
   it("falls back to 'other' when the category was removed", () => {
