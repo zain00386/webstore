@@ -1,5 +1,6 @@
 /** Fields a book card needs. */
 export type BookSummary = {
+  id: string;
   slug: string;
   title: string;
   author: string | null;
@@ -14,7 +15,6 @@ export type BookSummary = {
 
 /** Full book as the customer pages use it. Mirrors the database model planned for Phase 3. */
 export type Book = BookSummary & {
-  id: string;
   /** Extra title detail shown on the book page, e.g. "Public Service Commission | New Syllabus". */
   subtitle: string | null;
   edition: string | null;

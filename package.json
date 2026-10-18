@@ -17,7 +17,8 @@
     "db:create-admin": "tsx scripts/create-admin.mts",
     "db:change-admin-email": "tsx scripts/change-admin-email.mts",
     "e2e:admin": "tsx scripts/e2e/admin-auth.mts",
-    "e2e:books": "tsx scripts/e2e/admin-books.mts"
+    "e2e:books": "tsx scripts/e2e/admin-books.mts",
+    "e2e:cart": "tsx scripts/e2e/cart.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

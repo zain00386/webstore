@@ -4,6 +4,7 @@ import type { CartItemInput } from "./cart";
 /** Only the fields the cart needs (keeps descriptions etc. out of the browser bundle). */
 export function toCartItem(book: BookSummary): CartItemInput {
   return {
+    bookId: book.id,
     slug: book.slug,
     title: book.title,
     publisher: book.publisher,

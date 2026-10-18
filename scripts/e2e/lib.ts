@@ -51,7 +51,7 @@ export async function launchBrowser(): Promise<Browser> {
       pending.get(m.id)?.(m as never);
       pending.delete(m.id);
     } else if (m.method === "Runtime.exceptionThrown") {
-      logs.push(`exception: ${String(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text).slice(0, 200)}`);
+      logs.push(`exception: ${String(m.params.exceptionDetails.exception?.description ?? m.params.exceptionDetails.text).slice(0, process.env.E2E_LONG_LOGS ? 4000 : 200)}`);
     } else if (m.method === "Runtime.consoleAPICalled" && m.params.type === "error") {
       logs.push(`console.error: ${m.params.args.map((a: { value?: string; description?: string }) => a.value ?? a.description).join(" ").slice(0, 200)}`);
     }
