@@ -15,7 +15,8 @@
     "db:import": "tsx scripts/import-lahore.mts",
     "db:bundle": "tsx scripts/bundle-migrations.mts",
     "db:create-admin": "tsx scripts/create-admin.mts",
-    "db:change-admin-email": "tsx scripts/change-admin-email.mts"
+    "db:change-admin-email": "tsx scripts/change-admin-email.mts",
+    "e2e:admin": "tsx scripts/e2e/admin-auth.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

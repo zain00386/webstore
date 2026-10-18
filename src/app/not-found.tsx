@@ -1,11 +1,16 @@
 import Link from "next/link";
 import { SearchX } from "lucide-react";
+import { Logo } from "@/components/layout/logo";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 
+/** For addresses that match no page at all (shop pages use (shop)/not-found.tsx). */
 export default function NotFound() {
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
+    <main className="mx-auto w-full max-w-3xl px-4 py-12">
+      <div className="mb-8">
+        <Logo />
+      </div>
       <EmptyState
         icon={SearchX}
         title="Page not found"
@@ -21,6 +26,6 @@ export default function NotFound() {
           </div>
         }
       />
-    </div>
+    </main>
   );
 }
