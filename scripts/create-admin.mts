@@ -1,4 +1,5 @@
 /**
+ * npm run db:create-admin            (asks for the email)
  * npm run db:create-admin -- --email=you@example.com
  *
  * Creates (or reuses) a Supabase Auth user with that email and adds it to
@@ -7,15 +8,22 @@
  * Run this on your own computer only; the password is never stored anywhere else.
  */
 import { randomBytes } from "node:crypto";
+import { createInterface } from "node:readline/promises";
 import { createClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import type { Database } from "../src/lib/supabase/database.types";
 import { loadScriptEnv } from "./lib/script-env";
 
-const emailArg = process.argv.slice(2).find((a) => a.startsWith("--email="))?.slice(8);
+let emailArg = process.argv.slice(2).find((a) => a.startsWith("--email="))?.slice(8);
+if (!emailArg) {
+  // Asking avoids shell quoting problems with "@" in PowerShell.
+  const rl = createInterface({ input: process.stdin, output: process.stdout });
+  emailArg = await rl.question("\nAdmin email address: ");
+  rl.close();
+}
 const email = z.email().safeParse(emailArg?.trim().toLowerCase());
 if (!email.success) {
-  console.error('\nUsage: npm run db:create-admin -- --email=you@example.com\n');
+  console.error("\n✗ That doesn't look like an email address. Run `npm run db:create-admin` again.\n");
   process.exit(1);
 }
 
