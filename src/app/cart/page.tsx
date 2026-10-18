@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { CartView } from "@/components/cart/cart-view";
+import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 
-export const metadata: Metadata = { title: "Cart" };
+export const metadata: Metadata = { title: "Cart", robots: { index: false } };
 
 export default function CartPage() {
-  return <ComingSoon title="Your cart" phase="Phase 2 (screen) and Phase 7 (working cart)" />;
+  return (
+    <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Cart" }]} />
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight">Your cart</h1>
+      <CartView />
+    </div>
+  );
 }

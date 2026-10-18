@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { CartCount } from "@/components/cart/cart-count";
 import { isActive, mainNav } from "./nav-items";
 
 /** Phone-only bottom tab bar. */
@@ -30,7 +31,10 @@ export function MobileTabBarList({ pathname }: { pathname: string | null }) {
                   active && "text-brand",
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                <span className="relative">
+                  <Icon className="size-5" aria-hidden />
+                  {href === "/cart" && <CartCount className="absolute -top-2 -right-3" />}
+                </span>
                 {label}
               </Link>
             </li>

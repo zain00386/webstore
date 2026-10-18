@@ -1,4 +1,4 @@
-/** Fields a book card needs. The full database model arrives in Phase 3. */
+/** Fields a book card needs. */
 export type BookSummary = {
   slug: string;
   title: string;
@@ -8,4 +8,21 @@ export type BookSummary = {
   compareAtPrice: number | null;
   stockQuantity: number;
   coverUrl: string | null;
+};
+
+/** Full book as the customer pages use it. Mirrors the database model planned for Phase 3. */
+export type Book = BookSummary & {
+  id: string;
+  /** Extra title detail shown on the book page, e.g. "Public Service Commission | New Syllabus". */
+  subtitle: string | null;
+  edition: string | null;
+  isbn: string | null;
+  /** Plain-text blocks; lines starting with "• " are list items. */
+  description: string[];
+  categorySlug: string;
+  exams: string[];
+  images: string[];
+  isNewArrival: boolean;
+  /** Higher = added more recently. */
+  sortOrder: number;
 };

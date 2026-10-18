@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import { Lexend } from "next/font/google";
 import { siteConfig } from "@/config/site";
+import { CartProvider } from "@/components/cart/cart-provider";
 import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Logo } from "@/components/layout/logo";
 import { MobileTabBar, MobileTabBarList } from "@/components/layout/mobile-tab-bar";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         >
           Skip to content
         </a>
+        <CartProvider>
         <AnnouncementBar />
         <div className="flex flex-1">
           <aside className="sticky top-0 hidden h-svh w-24 shrink-0 flex-col items-center gap-8 border-r border-border bg-surface py-5 lg:flex">
@@ -67,7 +69,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <MobileTabBar />
         </Suspense>
         <WhatsAppButton />
-        <Toaster />
+        <Toaster position="top-center" />
+        </CartProvider>
       </body>
     </html>
   );

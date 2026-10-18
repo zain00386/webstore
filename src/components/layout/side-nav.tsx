@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { CartCount } from "@/components/cart/cart-count";
 import { isActive, mainNav } from "./nav-items";
 
 /** Desktop-only slim icon sidebar (like the reference design). */
@@ -27,7 +28,10 @@ export function SideNavList({ pathname }: { pathname: string | null }) {
               active && "bg-brand text-brand-foreground hover:bg-brand hover:text-brand-foreground",
             )}
           >
-            <Icon className="size-5" aria-hidden />
+            <span className="relative">
+              <Icon className="size-5" aria-hidden />
+              {href === "/cart" && <CartCount className="absolute -top-2 -right-3" />}
+            </span>
             {label}
           </Link>
         );

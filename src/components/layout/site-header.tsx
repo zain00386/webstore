@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Phone, ShoppingBag } from "lucide-react";
 import { siteConfig } from "@/config/site";
+import { CartCount } from "@/components/cart/cart-count";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { SearchForm } from "./search-form";
@@ -27,6 +28,7 @@ export function SiteHeader() {
               <ShoppingBag aria-hidden />
               <span className="hidden sm:inline">Cart</span>
               <span className="sr-only sm:hidden">Cart</span>
+              <CartCount />
             </Link>
           </Button>
         </div>

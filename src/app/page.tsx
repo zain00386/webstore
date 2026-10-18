@@ -1,16 +1,36 @@
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } from "lucide-react";
+import { categories } from "@/config/categories";
 import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
-import { sampleBooks, SAMPLE_LOW_STOCK_THRESHOLD } from "@/data/sample-books";
-import { formatPKR, whatsappLink } from "@/lib/format";
-import { getStockStatus } from "@/lib/stock";
-import { BookCard } from "@/components/book/book-card";
+import { getAllBooks, getCategoryCounts } from "@/data/catalog";
+import { getPublishedPosts } from "@/data/posts";
+import { discountPercent, formatPKR, whatsappLink } from "@/lib/format";
+import { PostCard } from "@/components/blog/post-card";
+import { BookGrid } from "@/components/book/shop-book-card";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OpenStatus } from "@/components/store/open-status";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
+function ViewAll({ href, label = "View all" }: { href: string; label?: string }) {
+  return (
+    <Link href={href} className="inline-flex items-center gap-1 text-sm font-medium hover:underline">
+      {label} <ArrowRight className="size-4" aria-hidden />
+    </Link>
+  );
+}
+
 export default function HomePage() {
+  const books = getAllBooks();
+  const newArrivals = books.filter((b) => b.isNewArrival).sort((a, b) => b.sortOrder - a.sortOrder).slice(0, 10);
+  const onSale = books
+    .filter((b) => discountPercent(b.price, b.compareAtPrice))
+    .sort((a, b) => (discountPercent(b.price, b.compareAtPrice) ?? 0) - (discountPercent(a.price, a.compareAtPrice) ?? 0))
+    .slice(0, 10);
+  const counts = getCategoryCounts();
+  const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
+  const vacancies = getPublishedPosts("vacancy").slice(0, 3);
+
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
       {/* Hero */}
@@ -32,7 +52,7 @@ export default function HomePage() {
           </p>
           <Button asChild size="pill">
             <Link href="/books">
-              Browse books <ArrowRight data-icon="inline-end" aria-hidden />
+              Browse {books.length} books <ArrowRight data-icon="inline-end" aria-hidden />
             </Link>
           </Button>
         </div>
@@ -78,7 +98,7 @@ export default function HomePage() {
 
       {/* Exam shortcuts */}
       <section aria-labelledby="exams-title">
-        <h2 id="exams-title" className="sr-only">
+        <h2 id="exams-title" className="mb-3 text-sm font-semibold text-muted-foreground">
           Shop by exam
         </h2>
         <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-wrap lg:px-0">
@@ -95,51 +115,63 @@ export default function HomePage() {
         </ul>
       </section>
 
-      {/* Popular books (preview data) */}
-      <section aria-labelledby="popular-title">
-        <SectionHeading
-          id="popular-title"
-          eyebrow="Rawalpindi branch"
-          title="Popular test prep"
-          description="Preview: real Dogar titles; stock shown here is sample data until the catalogue goes live."
-          action={
-            <Link href="/books" className="inline-flex items-center gap-1 text-sm font-medium hover:underline">
-              View all books <ArrowRight className="size-4" aria-hidden />
-            </Link>
-          }
-        />
-        <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-          {sampleBooks.map((book) => {
-            const soldOut = getStockStatus(book.stockQuantity) === "out_of_stock";
-            return (
-              <li key={book.slug}>
-                <BookCard
-                  book={book}
-                  lowStockThreshold={SAMPLE_LOW_STOCK_THRESHOLD}
-                  action={
-                    <Button className="w-full" variant={soldOut ? "secondary" : "default"} disabled>
-                      {soldOut ? "Out of stock" : "Ordering soon"}
-                    </Button>
-                  }
-                />
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {newArrivals.length > 0 && (
+        <section aria-labelledby="new-title">
+          <SectionHeading id="new-title" eyebrow="Just in" title="New arrivals" action={<ViewAll href="/books" />} />
+          <BookGrid books={newArrivals} priorityCount={2} />
+        </section>
+      )}
 
-      {/* Sections built in later phases */}
-      <section aria-labelledby="vacancies-title" className="rounded-3xl bg-surface p-6 ring-1 ring-border">
+      <section aria-labelledby="vacancies-title" className="rounded-3xl bg-surface p-5 ring-1 ring-border sm:p-6">
         <SectionHeading
           id="vacancies-title"
           eyebrow="Updated daily"
           title="Latest job vacancies"
-          description="FPSC, PPSC, police, armed forces and more, with the books to prepare. Coming soon."
+          description="Government and private jobs, with the books to prepare for each test."
+          action={<ViewAll href="/blog?type=vacancy" label="All vacancies" />}
         />
-        <Button asChild variant="outline">
-          <Link href="/blog">Go to vacancies</Link>
-        </Button>
+        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {vacancies.map((post) => (
+            <li key={post.slug}>
+              <PostCard post={post} />
+            </li>
+          ))}
+        </ul>
       </section>
+
+      <section aria-labelledby="categories-title">
+        <SectionHeading id="categories-title" title="Shop by category" />
+        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+          {shownCategories.map(({ slug, name, icon: Icon }) => (
+            <li key={slug}>
+              <Link
+                href={`/books?category=${slug}`}
+                className="flex h-full items-center gap-3 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow hover:shadow-md"
+              >
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                  <Icon className="size-5" aria-hidden />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm leading-snug font-semibold">{name}</span>
+                  <span className="text-xs text-muted-foreground">{counts.get(slug)} books</span>
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {onSale.length > 0 && (
+        <section aria-labelledby="sale-title">
+          <SectionHeading
+            id="sale-title"
+            eyebrow="Save more"
+            title="Discounted books"
+            action={<ViewAll href="/books?sort=discount" />}
+          />
+          <BookGrid books={onSale} />
+        </section>
+      )}
     </div>
   );
 }
