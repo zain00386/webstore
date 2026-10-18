@@ -200,6 +200,17 @@ export type Database = {
     Functions: {
       is_admin: { Args: Record<string, never>; Returns: boolean };
       get_public_settings: { Args: Record<string, never>; Returns: PublicSettings[] };
+      place_order: {
+        Args: {
+          p_idempotency_key: string;
+          p_access_token_hash: string;
+          p_customer: { name: string; phone: string; email: string; address: string; city: string; notes: string };
+          p_delivery_method: DeliveryMethodDb;
+          p_payment_method: PaymentMethodDb;
+          p_items: { book_id: string; quantity: number }[];
+        };
+        Returns: { order_id: string; order_number: string; total: number; created: boolean }[];
+      };
     };
     Enums: {
       post_kind: PostKind;

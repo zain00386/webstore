@@ -63,6 +63,31 @@ else {
   }
 }
 
+// 3b. Ordering step (migration 0004). An empty item list is refused without changing anything.
+const probe = await server.rpc("place_order", {
+  p_idempotency_key: "00000000-0000-4000-8000-000000000000",
+  p_access_token_hash: "0".repeat(64),
+  p_customer: { name: "check", phone: "03000000000", email: "", address: "check only", city: "check", notes: "" },
+  p_delivery_method: "courier",
+  p_payment_method: "cod",
+  p_items: [],
+});
+if (probe.error?.message.includes("INVALID_ITEMS")) ok("Ordering step (place_order) is installed");
+else if (probe.error && /Could not find the function|does not exist/i.test(probe.error.message)) {
+  fail("Ordering step (place_order) is missing", "Paste supabase/migrations/20261019000004_place_order.sql into the SQL Editor and click Run.");
+} else fail(`Ordering step check gave an unexpected result: ${probe.error?.message ?? "no error"}`);
+
+const visitorOrder = await visitor.rpc("place_order", {
+  p_idempotency_key: "00000000-0000-4000-8000-000000000000",
+  p_access_token_hash: "0".repeat(64),
+  p_customer: { name: "check", phone: "03000000000", email: "", address: "check only", city: "check", notes: "" },
+  p_delivery_method: "courier",
+  p_payment_method: "cod",
+  p_items: [],
+});
+if (visitorOrder.error && !visitorOrder.error.message.includes("INVALID_ITEMS")) ok("Visitors cannot call the ordering step directly");
+else fail("Visitors CAN call the ordering step", "Re-run supabase/migrations/20261019000004_place_order.sql.");
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

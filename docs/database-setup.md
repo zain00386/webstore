@@ -151,3 +151,13 @@ leaked one (or roll the legacy keys). Update `.env.local` (and Vercel later), th
 
 Before going live, check the backup options on your Supabase plan (Database → Backups).
 We'll cover this in Phase 14.
+
+## Later database updates
+
+When a new phase adds a file to `supabase/migrations/`, paste **only that new file** into
+the SQL Editor and click Run (not `setup-all.sql`, which is only for a brand-new, empty
+project). `npm run db:check` tells you if something is missing.
+
+| File | Added in | What it does |
+| --- | --- | --- |
+| `20261019000004_place_order.sql` | Phase 8 | The ordering step: re-checks prices and stock, deducts stock safely, creates the order |

@@ -94,20 +94,13 @@ try {
   await b.waitForText("Your cart is empty");
   r.check("removing it empties the cart", (await b.text()).includes("Your cart is empty"));
 
-  // 9. Checkout uses the server price in the order message
+  // 9. Checkout shows the database price, not the (tampered) one in browser storage
   await setBook({ is_active: true, stock_quantity: 4, price: 1500 });
   await b.js(`localStorage.setItem('dub-cart-v1', JSON.stringify([{ bookId: ${JSON.stringify(bookId)}, slug: ${JSON.stringify(slug)}, title: 'x', publisher: null, coverUrl: null, price: 5, compareAtPrice: null, maxQuantity: 9, quantity: 1 }]))`);
   await b.go("/checkout");
-  await b.waitFor(async () => !(await b.text()).includes("Checking prices and stock"), 20000);
-  await b.fill('[name="name"]', "Test Customer");
-  await b.fill('[name="phone"]', "0300-1234567");
-  await b.fill('textarea[name="address"]', "House 1, Street 2, Satellite Town");
-  await b.fill('[name="city"]', "Rawalpindi");
-  await b.clickText("button", "Review order");
-  await b.waitFor(() => b.js<boolean>(`[...document.querySelectorAll('a')].some(a => a.textContent.includes('Send order on WhatsApp'))`), 20000);
-  const href = await b.js<string>(`[...document.querySelectorAll('a')].find(a => a.textContent.includes('Send order on WhatsApp'))?.href ?? ''`);
-  const msg = decodeURIComponent(href.split("text=")[1] ?? "");
-  r.check("order message uses the database price, not the browser's", msg.includes(`${title} x 1 = Rs. 1,500`) && msg.includes("Total: Rs. 2,050"), msg.split("\n").slice(2, 8).join(" | "));
+  await b.waitFor(async () => (await b.text()).includes("Place order ·"), 30000);
+  const button = await b.js<string>(`[...document.querySelectorAll('button')].find(x => x.textContent.includes('Place order'))?.textContent ?? ''`);
+  r.check("checkout total uses the database price (1,500 + 550 courier)", button.includes("Rs. 2,050"), button);
 
   r.check("no browser errors", b.logs.length === 0, b.logs.join(" | "));
   b.close();

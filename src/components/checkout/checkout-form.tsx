@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { BookOpen, Info, MessageCircle, ShoppingBag } from "lucide-react";
+import {
+  BookOpen,
+  Info,
+  LoaderCircle,
+  MessageCircle,
+  ShoppingBag,
+} from "lucide-react";
 import { deliveryOptions, siteConfig } from "@/config/site";
 import {
   deliveryCharge,
@@ -19,7 +26,6 @@ import {
   type CheckoutData,
   type CheckoutInput,
 } from "@/lib/checkout/schema";
-import { buildWhatsAppOrderMessage } from "@/lib/checkout/whatsapp-order";
 import { formatPKR, whatsappLink } from "@/lib/format";
 import { Alert } from "@/components/feedback/alert";
 import { EmptyState } from "@/components/feedback/empty-state";
@@ -29,6 +35,8 @@ import { CartNotices } from "@/components/cart/cart-notices";
 import { useCartCheck } from "@/components/cart/use-cart-check";
 import { purchasableLines } from "@/lib/cart/cart";
 import { hasBlockingLines } from "@/lib/cart/reconcile";
+import { getCartSnapshot, writeCart } from "@/components/cart/cart-store";
+import { placeOrder } from "@/app/(shop)/checkout/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,7 +83,12 @@ export function CheckoutForm() {
   const check = useCartCheck(ready);
   const blocking = hasBlockingLines(allLines);
   const lines = purchasableLines(allLines);
-  const [review, setReview] = useState<CheckoutData | null>(null);
+  const router = useRouter();
+  const [placing, setPlacing] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  // One key + secret per order attempt: a double-click or retry sends the SAME
+  // ones, so the server returns the same order instead of creating a second.
+  const attempt = useRef<{ key: string; token: string } | null>(null);
 
   const form = useForm<CheckoutInput, unknown, CheckoutData>({
     resolver: zodResolver(checkoutSchema),
@@ -90,7 +103,8 @@ export function CheckoutForm() {
       paymentMethod: "cod",
     },
   });
-  const { register, handleSubmit, control, setValue, formState } = form;
+  const { register, handleSubmit, control, setValue, setError, formState } =
+    form;
   const errors = formState.errors;
   const delivery = useWatch({ control, name: "deliveryMethod" });
   const payment = useWatch({ control, name: "paymentMethod" });
@@ -116,24 +130,58 @@ export function CheckoutForm() {
   }
 
   const onSubmit = async (data: CheckoutData) => {
-    // Re-check prices and stock right before showing the final order.
-    const ok = await check.check();
-    if (!ok) {
-      setReview(null);
+    if (placing) return;
+    setSubmitError(null);
+    setPlacing(true);
+    let succeeded = false;
+    try {
+      // Final check of prices and stock with the shop.
+      if (!(await check.check())) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+      const items = purchasableLines(getCartSnapshot())
+        .filter((l) => l.bookId)
+        .map((l) => ({ bookId: l.bookId!, quantity: l.quantity }));
+      attempt.current ??= { key: crypto.randomUUID(), token: newOrderToken() };
+      const result = await placeOrder({
+        idempotencyKey: attempt.current.key,
+        accessToken: attempt.current.token,
+        details: data,
+        items,
+      });
+
+      if (result.ok) {
+        succeeded = true;
+        rememberOrder(result.orderNumber, result.token);
+        writeCart([]); // order placed: empty the cart
+        router.push(
+          `/order-confirmation/${result.orderNumber}?t=${encodeURIComponent(result.token)}`,
+        );
+        return; // the button stays disabled while the confirmation page loads
+      }
+
+      attempt.current = null; // nothing was ordered: the next try is a new attempt
+      setSubmitError(result.error);
+      for (const [field, message] of Object.entries(result.fieldErrors ?? {})) {
+        if (field in data) setError(field as keyof CheckoutData, { message });
+      }
+      if (result.cartChanged) await check.check(); // show exactly what changed
       window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
+    } catch {
+      // Network problem: the order may or may not have reached us. Retrying keeps the
+      // same attempt, which returns the same order: never a second one.
+      setSubmitError(
+        "We couldn't reach the shop. Check your connection and press Place order again; you won't be charged twice.",
+      );
+    } finally {
+      if (!succeeded) setPlacing(false);
     }
-    setReview(data);
-    requestAnimationFrame(() =>
-      document.getElementById("order-review")?.focus(),
-    );
   };
 
   return (
     <form
-      onSubmit={handleSubmit(onSubmit)}
-      // Any edit makes the reviewed message stale, so ask for a fresh review.
-      onChange={() => review && setReview(null)}
+      onSubmit={(e) => void handleSubmit(onSubmit)(e)}
       noValidate
       className="grid gap-8 lg:grid-cols-[1fr_380px]"
     >
@@ -338,56 +386,76 @@ export function CheckoutForm() {
           </div>
         </dl>
 
-        {review ? (
-          <div
-            id="order-review"
-            tabIndex={-1}
-            className="space-y-3 outline-none"
-          >
-            <Alert tone="info" title="Online ordering opens soon">
-              Your details are ready. Send this order to our shop on WhatsApp
-              and we will confirm it with you. Nothing has been ordered yet.
-            </Alert>
-            <Button
-              asChild
-              size="pill"
-              className="w-full bg-whatsapp hover:bg-whatsapp/90"
-            >
-              <a
-                href={whatsappLink(
-                  siteConfig.phoneE164,
-                  buildWhatsAppOrderMessage(lines, review),
-                )}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <MessageCircle aria-hidden /> Send order on WhatsApp
-              </a>
-            </Button>
-          </div>
-        ) : (
-          <Button
-            type="submit"
-            size="pill"
-            className="w-full"
-            disabled={
-              formState.isSubmitting ||
-              blocking ||
-              check.status === "checking" ||
-              lines.length === 0
-            }
-          >
-            {check.status === "checking"
+        {submitError && <Alert tone="error">{submitError}</Alert>}
+        <Button
+          type="submit"
+          size="pill"
+          className="w-full"
+          disabled={
+            placing ||
+            blocking ||
+            check.status === "checking" ||
+            lines.length === 0
+          }
+        >
+          {placing ? (
+            <LoaderCircle className="animate-spin" aria-hidden />
+          ) : null}
+          {placing
+            ? "Placing your order…"
+            : check.status === "checking"
               ? "Checking prices and stock…"
               : blocking
                 ? "Remove unavailable books first"
-                : "Review order"}
-          </Button>
-        )}
+                : `Place order · ${formatPKR(subtotal + shipping)}`}
+        </Button>
+        <p className="text-xs text-muted-foreground">
+          By placing the order you agree to our{" "}
+          <Link href="/terms" className="underline">
+            terms
+          </Link>
+          . Questions?{" "}
+          <a
+            href={whatsappLink(siteConfig.phoneE164)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 underline"
+          >
+            <MessageCircle className="size-3" aria-hidden /> WhatsApp us
+          </a>
+        </p>
         <p className="text-xs text-muted-foreground">
           We never ask for card numbers, PINs or OTPs.
         </p>
       </aside>
     </form>
   );
+}
+
+/** 32 random bytes as base64url (43 characters): the secret for this order's link. */
+function newOrderToken(): string {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  return btoa(String.fromCharCode(...bytes))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+/** Keeps the customer's recent order links in this browser so they can find them again. */
+function rememberOrder(orderNumber: string, token: string) {
+  try {
+    const key = "dub-orders-v1";
+    const list = JSON.parse(localStorage.getItem(key) ?? "[]") as {
+      orderNumber: string;
+      token: string;
+      at: string;
+    }[];
+    const next = [
+      { orderNumber, token, at: new Date().toISOString() },
+      ...list.filter((o) => o.orderNumber !== orderNumber),
+    ].slice(0, 10);
+    localStorage.setItem(key, JSON.stringify(next));
+  } catch {
+    // storage blocked: the confirmation link still works
+  }
 }
