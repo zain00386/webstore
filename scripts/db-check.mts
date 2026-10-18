@@ -25,7 +25,7 @@ console.log(`\nChecking Supabase project ${new URL(env.url).host}\n`);
 // 1. Tables exist (migration 0001)
 const cats = await server.from("categories").select("slug", { count: "exact", head: true });
 if (cats.error) {
-  fail("Database tables not found", "Run the 3 SQL files in supabase/migrations in order (docs/database-setup.md, step 3).");
+  fail("Database tables not found", "Paste supabase/setup-all.sql into Supabase > SQL Editor and click Run (docs/database-setup.md, step 3).");
 } else {
   ok(`Tables exist (${cats.count} categories)`);
 }
@@ -62,11 +62,25 @@ else {
   }
 }
 
-// 4. Admin + data
+// 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
+try {
+  const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });
+  const authSettings = (await res.json()) as { disable_signup?: boolean };
+  if (authSettings.disable_signup) ok("Public sign-up is turned off");
+  else
+    fail(
+      "Public sign-up is ON",
+      'Supabase > Authentication > Sign In / Providers: turn off "Allow new users to sign up", then Save.',
+    );
+} catch (e) {
+  warn(`Could not read sign-up setting (${(e as Error).message})`);
+}
+
+// 5. Admin + data
 const admins = await server.from("admin_users").select("user_id", { count: "exact", head: true });
 if (!admins.error) {
   if (admins.count) ok(`${admins.count} admin account(s) set up`);
-  else warn("No admin yet — see docs/database-setup.md, step 5 (needed from Phase 5).");
+  else warn("No admin yet — run: npm run db:create-admin -- --email=you@example.com");
 }
 
 const allBooks = await server.from("books").select("id", { count: "exact", head: true });

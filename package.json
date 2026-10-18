@@ -12,7 +12,9 @@
     "test:watch": "vitest",
     "format": "prettier --write .",
     "db:check": "tsx scripts/db-check.mts",
-    "db:import": "tsx scripts/import-lahore.mts"
+    "db:import": "tsx scripts/import-lahore.mts",
+    "db:bundle": "tsx scripts/bundle-migrations.mts",
+    "db:create-admin": "tsx scripts/create-admin.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

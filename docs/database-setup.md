@@ -1,7 +1,16 @@
 # Database setup (Supabase)
 
-Follow these steps once. They take about 20 minutes. You will copy three values
-into a private file, paste three SQL files into Supabase, and run two commands.
+Follow these steps once. They take about 15 minutes. You will paste three values
+into a private file, paste one SQL file into Supabase, flip one switch, and run four commands.
+
+**Quick version**
+
+1. Create the project on supabase.com.
+2. Paste 3 values into `.env.local`. The file already exists; just fill in the blanks.
+3. Paste `supabase/setup-all.sql` into Supabase's SQL Editor and click **Run**.
+4. Turn off public sign-up in Supabase.
+5. In the terminal: `npm run db:check`, then `npm run db:create-admin -- --email=YOUR@EMAIL`,
+   then `npm run db:import`, then `npm run db:check` again.
 
 > **Never** paste your keys or passwords into chat, email, WhatsApp or GitHub.
 > They only go in the `.env.local` file on your computer (and later in Vercel's settings).
@@ -19,8 +28,7 @@ into a private file, paste three SQL files into Supabase, and run two commands.
 
 ## 2. Put the keys in `.env.local`
 
-1. In VS Code, right-click `.env.example` → **Copy**, then right-click the project folder → **Paste**.
-   Rename the copy to **`.env.local`** (exactly, with the dot at the start).
+1. In VS Code open **`.env.local`** (already created for you, with empty values).
 2. In Supabase open **Project Settings → API Keys** (or **Settings → API**). Copy:
 
    | Put this in `.env.local` | Copy from Supabase |
@@ -37,20 +45,18 @@ security rules decide what it can see. The *secret/service_role* key skips every
 like a master key. It must never be in a variable starting with `NEXT_PUBLIC_`; the
 site refuses to start if it is.
 
-## 3. Create the tables (run the migrations)
+## 3. Create the tables (one paste)
 
-In Supabase, open **SQL Editor → New query**. For **each file below, in this order**:
-open it in VS Code, select all (`Ctrl + A`), copy, paste into the SQL editor, then click **Run**.
-You should see *Success. No rows returned*.
+1. In VS Code open **`supabase/setup-all.sql`**, press `Ctrl + A` then `Ctrl + C`.
+2. In Supabase open **SQL Editor → New query**, paste (`Ctrl + V`), click **Run**.
+3. You should see *Success. No rows returned*.
 
-1. `supabase/migrations/20261018000001_core_schema.sql`: tables, rules, categories
-2. `supabase/migrations/20261018000002_security.sql`: who can read/change what
-3. `supabase/migrations/20261018000003_storage.sql`: image storage for covers
+Run it **once**. It runs as one transaction: if anything goes wrong, nothing is changed;
+copy the error message and ask for help. (Supabase may warn that the query
+"contains destructive operations": that's the `revoke` security lines; click *Run* to confirm.)
 
-Run each file **once**. If a file fails halfway, copy the error message and ask for help
-before running it again.
-
-*(Advanced alternative: `npx supabase link` then `npx supabase db push`.)*
+*`setup-all.sql` is the three files in `supabase/migrations/` combined. Advanced alternative:
+`npx supabase link` then `npx supabase db push`.*
 
 ## 4. Check everything
 
@@ -65,22 +71,21 @@ Every line should show ✓. A ✗ line tells you what to fix. "No admin yet" and
 
 ## 5. Turn off public sign-up and create your admin account
 
-The website has **no sign-up page**. Admins are created by hand, here:
+The website has **no sign-up page**; admins are created only by you.
 
-1. **Authentication → Sign In / Providers** (or *Auth settings*): turn **off**
-   *"Allow new users to sign up"*. Save.
-2. **Authentication → Users → Add user → Create new user**
-   - Your email and a strong password (12+ characters; save it in a password manager).
-   - Tick **Auto Confirm User**.
-3. Click the new user and copy its **User UID** (looks like `1b2c3d4e-…`).
-4. **SQL Editor → New query**, paste this with your UID, then click **Run**:
+1. In Supabase: **Authentication → Sign In / Providers** (or *Auth settings*), turn **off**
+   *"Allow new users to sign up"*, then Save. (`npm run db:check` warns if it's still on.)
+2. In the VS Code terminal, with your own email:
 
-   ```sql
-   insert into public.admin_users (user_id, note)
-   values ('PASTE-YOUR-USER-UID-HERE', 'Owner');
+   ```
+   npm run db:create-admin -- --email=you@example.com
    ```
 
-To remove an admin later: `delete from public.admin_users where user_id = '...';`
+   It creates the account, gives it admin rights, and shows a strong password **once**.
+   Save that password in a password manager immediately. Running it again for the same
+   email only re-adds admin rights; the password isn't changed.
+
+To remove an admin later (SQL Editor): `delete from public.admin_users where user_id = '...';`
 
 ## 6. Import the Lahore catalogue
 
