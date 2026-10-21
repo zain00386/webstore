@@ -44,7 +44,7 @@ export default async function HomePage() {
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
   const allPosts = await getPublishedPosts();
   const latestPosts = allPosts.slice(0, 3);
-  const slides = buildHeroSlides(allPosts, books);
+  const slides = buildHeroSlides(books);
   const exCounts = examCounts(books);
   // Rows of books per popular exam (only exams that have books).
   const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
@@ -55,7 +55,7 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(storeJsonLd(store))} />
-      {/* Banner: latest vacancies with their books, new arrivals, popular exams */}
+      {/* Banner: new test books (ticked "New arrival" in Admin > Books) */}
       <section aria-labelledby="hero-title" className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h1 id="hero-title" className="text-lg font-semibold tracking-tight sm:text-xl">
