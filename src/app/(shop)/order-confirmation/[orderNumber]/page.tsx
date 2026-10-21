@@ -79,7 +79,7 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
   const delivery = deliveryOptions.find((o) => o.id === order.deliveryMethod)?.label ?? order.deliveryMethod;
   const isTransfer = order.paymentMethod !== "cod";
   const cancelled = order.status === "cancelled";
-  const account = order.paymentMethod === "jazzcash" ? payment.jazzcash : order.paymentMethod === "easypaisa" ? payment.easypaisa : null;
+  const accountFields = payToFields(order.paymentMethod, payment);
   const whatsappText =
     isTransfer && order.paymentStatus !== "paid" && !cancelled
       ? `Assalam-o-Alaikum, I have sent ${formatPKR(order.total)} by ${paymentLabels[order.paymentMethod]} for order ${order.orderNumber}. Here is the payment screenshot:`
@@ -125,21 +125,17 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
             <h2 id="pay-title" className="flex items-center gap-2 font-semibold">
               <Clock className="size-4" aria-hidden /> Next step: send {formatPKR(order.total)} by {paymentLabels[order.paymentMethod]}
             </h2>
-            {account?.number ? (
-              <dl className="grid gap-2 rounded-2xl bg-card p-4 text-sm ring-1 ring-border sm:grid-cols-3">
-                <div>
-                  <dt className="text-xs text-muted-foreground">{paymentLabels[order.paymentMethod]} number</dt>
-                  <dd className="flex items-center gap-1 text-lg font-semibold tabular-nums">
-                    {account.number}
-                    <CopyButton value={account.number} label={`${paymentLabels[order.paymentMethod]} number`} />
-                  </dd>
-                </div>
-                {account.title && (
-                  <div>
-                    <dt className="text-xs text-muted-foreground">Account name</dt>
-                    <dd className="font-medium">{account.title}</dd>
+            {accountFields.length ? (
+              <dl className="grid gap-3 rounded-2xl bg-card p-4 text-sm ring-1 ring-border sm:grid-cols-2">
+                {accountFields.map((f) => (
+                  <div key={f.label}>
+                    <dt className="text-xs text-muted-foreground">{f.label}</dt>
+                    <dd className={cn("flex items-center gap-1 break-all", f.copy ? "text-lg font-semibold tabular-nums" : "font-medium")}>
+                      {f.value}
+                      {f.copy && <CopyButton value={f.value.replace(/[\s-]/g, "")} label={f.label} />}
+                    </dd>
                   </div>
-                )}
+                ))}
                 <div>
                   <dt className="text-xs text-muted-foreground">Exact amount</dt>
                   <dd className="text-lg font-semibold tabular-nums">{formatPKR(order.total)}</dd>
@@ -150,7 +146,7 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
             )}
             <ol className="list-decimal space-y-1 pl-5 text-sm">
               <li>
-                Write your order number <strong>{order.orderNumber}</strong> in the payment note.
+                Write your order number <strong>{order.orderNumber}</strong> in the payment note or reference.
               </li>
               <li>Send the payment screenshot to us on WhatsApp.</li>
               <li>We dispatch your books after we confirm the payment in our account.</li>
@@ -283,4 +279,27 @@ function OrderProgress({ status }: { status: string }) {
       })}
     </ol>
   );
+}
+
+/** The shop's account details for this payment method (empty if the owner hasn't entered them). */
+function payToFields(method: CustomerOrder["paymentMethod"], payment: PaymentDetails): { label: string; value: string; copy?: boolean }[] {
+  const fields: { label: string; value: string | null | undefined; copy?: boolean }[] = [];
+  if (method === "jazzcash" || method === "easypaisa") {
+    const account = payment[method];
+    if (!account?.number) return [];
+    fields.push(
+      { label: `${paymentLabels[method]} number`, value: account.number, copy: true },
+      { label: "Account name", value: account.title },
+    );
+  } else if (method === "bank_transfer") {
+    const bank = payment.bank;
+    if (!bank?.number) return [];
+    fields.push(
+      { label: "Bank", value: bank.bankName },
+      { label: "Account title", value: bank.title },
+      { label: "Account number", value: bank.number, copy: true },
+      { label: "IBAN", value: bank.iban, copy: true },
+    );
+  }
+  return fields.filter((f): f is { label: string; value: string; copy?: boolean } => Boolean(f.value));
 }

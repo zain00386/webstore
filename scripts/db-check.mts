@@ -88,6 +88,15 @@ const visitorOrder = await visitor.rpc("place_order", {
 if (visitorOrder.error && !visitorOrder.error.message.includes("INVALID_ITEMS")) ok("Visitors cannot call the ordering step directly");
 else fail("Visitors CAN call the ordering step", "Re-run supabase/migrations/20261019000004_place_order.sql.");
 
+// 3c. Bank transfer (migration 0005): public settings report the switch, never the account details.
+const pub = await visitor.rpc("get_public_settings");
+const pubRow = pub.data?.[0] as Record<string, unknown> | undefined;
+if (pubRow && "bank_enabled" in pubRow) ok("Bank transfer option is installed");
+else fail("Bank transfer option is missing", "Paste supabase/migrations/20261021000005_bank_transfer.sql into the SQL Editor and click Run.");
+if (pubRow && ["jazzcash_number", "easypaisa_number", "bank_account_number", "bank_iban"].some((k) => k in pubRow)) {
+  fail("Public settings expose payment account numbers", "Re-run supabase/migrations/20261021000005_bank_transfer.sql.");
+}
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

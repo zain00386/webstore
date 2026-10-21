@@ -16,7 +16,9 @@ import {
 import { deliveryOptions, siteConfig } from "@/config/site";
 import {
   deliveryCharge,
+  firstAllowedPayment,
   isPaymentAllowed,
+  type PaymentAvailability,
   paymentLabels,
   paymentMethods,
   type PaymentMethod,
@@ -76,10 +78,13 @@ const paymentNotes: Record<PaymentMethod, string> = {
     "Pay after placing the order. We dispatch after verifying your payment.",
   easypaisa:
     "Pay after placing the order. We dispatch after verifying your payment.",
-  cod: "Pay in cash when the courier delivers your books.",
+  bank_transfer:
+    "Our bank details are shown after you place the order. We dispatch after the money reaches our account.",
+  cod: "Pay the full amount in cash when the courier delivers your books. No advance payment needed.",
 };
 
-export function CheckoutForm() {
+export function CheckoutForm({ payments }: { payments: PaymentAvailability }) {
+  const offered = paymentMethods.filter((m) => payments[m]);
   const { lines: allLines, ready, subtotal } = useCart();
   const check = useCartCheck(ready);
   const blocking = hasBlockingLines(allLines);
@@ -101,7 +106,7 @@ export function CheckoutForm() {
       city: "",
       notes: "",
       deliveryMethod: "courier",
-      paymentMethod: "cod",
+      paymentMethod: firstAllowedPayment("courier", payments) ?? "cod",
     },
   });
   const { register, handleSubmit, control, setValue, setError, formState } =
@@ -276,8 +281,10 @@ export function CheckoutForm() {
                     onChange={(v) => {
                       field.onChange(v);
                       // Switching to Pakistan Post makes COD invalid; move to a prepaid option.
-                      if (!isPaymentAllowed(o.id, payment))
-                        setValue("paymentMethod", "jazzcash");
+                      if (!isPaymentAllowed(o.id, payment)) {
+                        const next = firstAllowedPayment(o.id, payments);
+                        if (next) setValue("paymentMethod", next);
+                      }
                     }}
                     title={o.label}
                     description={o.note}
@@ -290,15 +297,18 @@ export function CheckoutForm() {
         </fieldset>
 
         <fieldset>
-          <legend className="mb-3 text-lg font-semibold">
+          <legend className="mb-1 text-lg font-semibold">
             3. Payment method
           </legend>
+          <p className="mb-3 text-sm text-muted-foreground">
+            Choose one way to pay for the whole order.
+          </p>
           <Controller
             control={control}
             name="paymentMethod"
             render={({ field }) => (
-              <div className="grid gap-3 sm:grid-cols-3">
-                {paymentMethods.map((m) => {
+              <div className="grid gap-3 sm:grid-cols-2">
+                {offered.map((m) => {
                   const allowed = isPaymentAllowed(delivery, m);
                   return (
                     <ChoiceCard
@@ -310,7 +320,7 @@ export function CheckoutForm() {
                       onChange={field.onChange}
                       title={paymentLabels[m]}
                       description={
-                        allowed ? undefined : "Only with TCS / Leopards"
+                        allowed ? undefined : "Only with TCS / Leopards / M&P"
                       }
                     />
                   );

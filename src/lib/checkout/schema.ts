@@ -35,7 +35,7 @@ export const checkoutSchema = z
   })
   .refine((v) => isPaymentAllowed(v.deliveryMethod, v.paymentMethod), {
     path: ["paymentMethod"],
-    message: "Cash on Delivery is available with TCS / Leopards only",
+    message: "Cash on Delivery is available with TCS / Leopards / M&P only",
   });
 
 export type CheckoutInput = z.input<typeof checkoutSchema>;

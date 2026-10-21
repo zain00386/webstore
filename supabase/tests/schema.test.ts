@@ -91,6 +91,8 @@ describe("visitors (anon)", () => {
     expect(r.rows[0]).toMatchObject({ pakistan_post_fee: "300.00", courier_fee: "550.00", cod_enabled: true });
     expect(Object.keys(r.rows[0])).not.toContain("jazzcash_number");
     expect(Object.keys(r.rows[0])).not.toContain("easypaisa_number");
+    expect(r.rows[0]).toMatchObject({ bank_enabled: false });
+    for (const k of ["bank_name", "bank_account_title", "bank_account_number", "bank_iban"]) expect(Object.keys(r.rows[0])).not.toContain(k);
   });
 
   it("cannot upload images", async () => {

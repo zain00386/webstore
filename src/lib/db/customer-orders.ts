@@ -1,5 +1,6 @@
 import "server-only";
 import { tokenMatches } from "@/lib/orders/token";
+import type { PaymentMethodDb } from "@/lib/supabase/database.types";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const ORDER_NUMBER = /^DUB-\d{1,10}$/;
@@ -9,7 +10,7 @@ export type CustomerOrder = {
   createdAt: string;
   status: string;
   paymentStatus: string;
-  paymentMethod: "jazzcash" | "easypaisa" | "cod";
+  paymentMethod: PaymentMethodDb;
   deliveryMethod: "pakistan_post" | "courier";
   subtotal: number;
   deliveryFee: number;
@@ -25,6 +26,7 @@ export type CustomerOrder = {
 export type PaymentDetails = {
   jazzcash: { title: string | null; number: string | null } | null;
   easypaisa: { title: string | null; number: string | null } | null;
+  bank: { bankName: string | null; title: string | null; number: string | null; iban: string | null } | null;
   instructions: string;
   whatsapp: string;
 };
@@ -79,13 +81,16 @@ export async function fetchPaymentDetails(): Promise<PaymentDetails> {
   const { data: s } = await db
     .from("store_settings")
     .select(
-      "jazzcash_enabled, jazzcash_account_title, jazzcash_number, easypaisa_enabled, easypaisa_account_title, easypaisa_number, payment_instructions, whatsapp_e164",
+      "jazzcash_enabled, jazzcash_account_title, jazzcash_number, easypaisa_enabled, easypaisa_account_title, easypaisa_number, bank_enabled, bank_name, bank_account_title, bank_account_number, bank_iban, payment_instructions, whatsapp_e164",
     )
     .eq("id", true)
     .single();
   return {
     jazzcash: s?.jazzcash_enabled ? { title: s.jazzcash_account_title, number: s.jazzcash_number } : null,
     easypaisa: s?.easypaisa_enabled ? { title: s.easypaisa_account_title, number: s.easypaisa_number } : null,
+    bank: s?.bank_enabled
+      ? { bankName: s.bank_name, title: s.bank_account_title, number: s.bank_account_number, iban: s.bank_iban }
+      : null,
     instructions: s?.payment_instructions ?? "",
     whatsapp: s?.whatsapp_e164 ?? "923249574895",
   };

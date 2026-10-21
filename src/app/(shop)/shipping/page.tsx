@@ -5,7 +5,7 @@ import { InfoPage } from "@/components/layout/info-page";
 
 export const metadata: Metadata = {
   title: "Shipping & delivery",
-  description: "Delivery all over Pakistan: Pakistan Post Rs. 300 (prepaid) or TCS / Leopards Rs. 550 with Cash on Delivery.",
+  description: "Delivery all over Pakistan: Pakistan Post Rs. 300 (prepaid) or TCS / Leopards / M&P Rs. 550 with Cash on Delivery.",
 };
 
 export default function ShippingPage() {
@@ -45,7 +45,7 @@ export default function ShippingPage() {
 
       <h2>Cash on Delivery</h2>
       <p>
-        Available with TCS / Leopards only. Pay the courier in cash when your books arrive. We may call or WhatsApp you to
+        Available with TCS / Leopards / M&P only. Pay the courier in cash when your books arrive. We may call or WhatsApp you to
         confirm your order before dispatch.
       </p>
 

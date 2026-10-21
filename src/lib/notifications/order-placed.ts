@@ -9,7 +9,7 @@
 export type OrderPlacedNotice = {
   orderNumber: string;
   total: number;
-  paymentMethod: "jazzcash" | "easypaisa" | "cod";
+  paymentMethod: "jazzcash" | "easypaisa" | "bank_transfer" | "cod";
   deliveryMethod: "pakistan_post" | "courier";
   customerName: string;
   customerPhone: string;

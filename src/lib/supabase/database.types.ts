@@ -12,7 +12,7 @@ type Insertable<Row, Required extends keyof Row, Generated extends keyof Row = n
 export type PostKind = "blog" | "vacancy";
 export type PostStatus = "draft" | "published" | "archived";
 export type DeliveryMethodDb = "pakistan_post" | "courier";
-export type PaymentMethodDb = "jazzcash" | "easypaisa" | "cod";
+export type PaymentMethodDb = "jazzcash" | "easypaisa" | "bank_transfer" | "cod";
 export type PaymentStatus = "pending" | "paid" | "failed" | "refunded" | "not_applicable";
 export type OrderStatus = "pending" | "confirmed" | "processing" | "shipped" | "delivered" | "cancelled";
 
@@ -89,6 +89,11 @@ export type StoreSettingsRow = {
   easypaisa_enabled: boolean;
   easypaisa_account_title: string | null;
   easypaisa_number: string | null;
+  bank_enabled: boolean;
+  bank_name: string | null;
+  bank_account_title: string | null;
+  bank_account_number: string | null;
+  bank_iban: string | null;
   payment_instructions: string;
   updated_at: string;
 };
@@ -109,6 +114,7 @@ export type PublicSettings = Pick<
   | "cod_enabled"
   | "jazzcash_enabled"
   | "easypaisa_enabled"
+  | "bank_enabled"
 >;
 
 export type AdminUserRow = { user_id: string; note: string | null; created_at: string };

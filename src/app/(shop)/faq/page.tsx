@@ -8,11 +8,11 @@ export const metadata: Metadata = { title: "FAQ", description: "Answers about de
 const faqs = [
   {
     q: "Do you deliver outside Rawalpindi?",
-    a: "Yes, all over Pakistan. Pakistan Post costs Rs. 300 (prepaid only). TCS / Leopards costs Rs. 550 and allows Cash on Delivery.",
+    a: "Yes, all over Pakistan. Pakistan Post costs Rs. 300 (prepaid only). TCS / Leopards / M&P costs Rs. 550 and allows Cash on Delivery.",
   },
   {
     q: "Can I pay Cash on Delivery?",
-    a: "Yes, when you choose TCS / Leopards delivery. Pakistan Post orders must be paid in advance by JazzCash or Easypaisa.",
+    a: "Yes, when you choose TCS / Leopards / M&P delivery. Pakistan Post orders must be paid in advance by JazzCash or Easypaisa.",
   },
   {
     q: "How do I pay with JazzCash or Easypaisa?",

@@ -85,7 +85,7 @@ export default async function HomePage() {
               <span>
                 {deliveryOptions.map((o) => `${o.label} ${formatPKR(o.charge)}`).join(" · ")}
                 <br />
-                <span className="text-muted-foreground">Cash on Delivery with TCS / Leopards</span>
+                <span className="text-muted-foreground">Cash on Delivery with TCS / Leopards / M&P</span>
               </span>
             </li>
           </ul>

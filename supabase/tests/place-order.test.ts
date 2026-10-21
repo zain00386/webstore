@@ -106,6 +106,22 @@ describe("place_order", () => {
     await db.exec("update public.store_settings set courier_enabled = true");
   });
 
+  it("bank transfer: off until the owner adds full bank details, then works with Pakistan Post", async () => {
+    await db.exec(`update public.books set stock_quantity = 5 where slug = 'pms'`);
+    expect(await errorOf(place([{ book_id: pms, quantity: 1 }], { payment: "bank_transfer" }))).toMatch(/PAYMENT_UNAVAILABLE/);
+    // can't switch it on without the details
+    expect(await errorOf(db.exec("update public.store_settings set bank_enabled = true"))).toMatch(/store_settings_bank_complete/);
+    expect(await errorOf(db.exec("update public.store_settings set bank_iban = 'PK12'"))).toMatch(/check constraint/);
+    await db.exec(`update public.store_settings set bank_enabled = true, bank_name = 'Meezan Bank',
+      bank_account_title = 'Dogar Unique Books', bank_account_number = '0123-4567890', bank_iban = 'PK36MEZN0000001123456702'`);
+    const r = (await place([{ book_id: pms, quantity: 1 }], { delivery: "pakistan_post", payment: "bank_transfer" })).rows[0];
+    expect(r.created).toBe(true);
+    expect(r.total).toBe("2100.00"); // 1800 + 300
+    const o = (await db.query<{ payment_method: string; payment_status: string }>("select payment_method, payment_status from public.orders where id = $1", [r.order_id])).rows[0];
+    expect(o).toEqual({ payment_method: "bank_transfer", payment_status: "pending" });
+    await db.exec("update public.store_settings set bank_enabled = false");
+  });
+
   it("refuses bad item lists", async () => {
     expect(await errorOf(place([]))).toMatch(/INVALID_ITEMS/);
     expect(await errorOf(place([{ book_id: pms, quantity: 0 }]))).toMatch(/INVALID_ITEMS/);

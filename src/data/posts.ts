@@ -12,7 +12,7 @@ const posts: Post[] = [
     title: "How to order books from Dogar's Unique Books Rawalpindi",
     kind: "blog",
     excerpt:
-      "Delivery all over Pakistan from Rs. 300, Cash on Delivery with TCS / Leopards, and JazzCash or Easypaisa payments. Here is how it works.",
+      "Delivery all over Pakistan from Rs. 300, Cash on Delivery with TCS / Leopards / M&P, and JazzCash or Easypaisa payments. Here is how it works.",
     coverUrl: null,
     publishedAt: "2026-10-18",
     isSample: false,
@@ -23,7 +23,7 @@ const posts: Post[] = [
         type: "ul",
         items: [
           "Pakistan Post: Rs. 300, all over Pakistan. Prepaid only (JazzCash or Easypaisa).",
-          "TCS / Leopards courier: Rs. 550. Cash on Delivery available, or pay in advance.",
+          "TCS / Leopards / M&P courier: Rs. 550. Cash on Delivery available, or pay in advance.",
         ],
       },
       { type: "h2", text: "Paying with JazzCash or Easypaisa" },

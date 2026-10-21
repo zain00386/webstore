@@ -34,7 +34,7 @@ export const deliveryOptions = [
   },
   {
     id: "courier",
-    label: "TCS / Leopards",
+    label: "TCS / Leopards / M&P",
     charge: 550,
     note: "Cash on Delivery available, or prepaid",
     codAllowed: true,
