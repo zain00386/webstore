@@ -15,6 +15,8 @@ export type AdminBookRow = {
   low_stock_threshold: number | null;
   cover_image_path: string | null;
   is_active: boolean;
+  /** Shown in "New arrivals" on the home page and in the banner. */
+  is_new_arrival: boolean;
   category_id: string | null;
   updated_at: string;
 };
@@ -28,6 +30,7 @@ export const adminBooksQuerySchema = z.object({
   category: z.preprocess(first, z.union([z.uuid(), z.literal("none")]).optional().catch(undefined)),
   status: z.preprocess(first, z.enum(["all", "active", "hidden"]).catch("all")),
   stock: z.preprocess(first, z.enum(["all", "in", "low", "out"]).catch("all")),
+  home: z.preprocess(first, z.enum(["all", "new"]).catch("all")),
   sort: z.preprocess(first, z.enum(["updated", "title", "price-asc", "price-desc", "stock-asc", "stock-desc"]).catch("updated")),
   page: z.preprocess(first, z.coerce.number().int().min(1).max(1000).catch(1)),
 });
@@ -60,6 +63,7 @@ export function filterAdminBooks(rows: AdminBookRow[], query: AdminBooksQuery, s
     if (query.status === "hidden" && b.is_active) return false;
     if (query.category === "none" && b.category_id) return false;
     if (query.category && query.category !== "none" && b.category_id !== query.category) return false;
+    if (query.home === "new" && !b.is_new_arrival) return false;
     if (query.stock === "out" && b.stock_quantity > 0) return false;
     if (query.stock === "in" && b.stock_quantity <= 0) return false;
     if (query.stock === "low" && !isLow(b, storeThreshold)) return false;
@@ -87,6 +91,7 @@ export function adminBooksHref(query: Partial<AdminBooksQuery>, overrides: Parti
   if (m.category) p.set("category", m.category);
   if (m.status && m.status !== "all") p.set("status", m.status);
   if (m.stock && m.stock !== "all") p.set("stock", m.stock);
+  if (m.home && m.home !== "all") p.set("home", m.home);
   if (m.sort && m.sort !== "updated") p.set("sort", m.sort);
   if (m.page && m.page > 1) p.set("page", String(m.page));
   const qs = p.toString();

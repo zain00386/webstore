@@ -75,7 +75,8 @@ try {
   for (let i = 0; i < 3; i++) r.info(`probe ${i}: ${(await page(`/blog/${slug}`)).html.includes("Post not found") ? "not found" : "found"}`);
   const pub = await page(`/blog/${slug}`);
   r.check("post page shows title, organisation and safe apply link", pub.html.includes(title) && pub.html.includes("E2E Commission") && pub.html.includes('href="https://www.example.gov.pk/apply"'), `title:${pub.html.includes(title)} org:${pub.html.includes("E2E Commission")} link:${pub.html.includes('href="https://www.example.gov.pk/apply"')} notfound:${pub.html.includes("Post not found")}`);
-  r.check("script text is shown as text, unsafe link dropped", !pub.html.includes("<script>alert") && !pub.html.includes('href="javascript:'));
+  const at = pub.html.indexOf("<script>alert");
+  r.check("script text is shown as text, unsafe link dropped", at < 0 && !pub.html.includes('href="javascript:'), at >= 0 ? pub.html.slice(Math.max(0, at - 200), at + 60) : "");
   const listAll = (await page("/blog")).html.includes(title);
   const listVac = (await page("/blog?type=vacancy")).html.includes(title);
   r.check("listed on /blog and under Vacancies", listAll && listVac, `all:${listAll} vacancies:${listVac}`);

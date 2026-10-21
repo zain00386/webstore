@@ -6,8 +6,10 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
 import { BASE, launchBrowser, reporter, signIn, sleep, type Browser } from "./lib";
+import { clearOrderRateLimits } from "./lib";
 
 const env = loadScriptEnv();
+await clearOrderRateLimits(env.url, env.serviceKey);
 const svc = createClient<Database>(env.url, env.serviceKey, { auth: { persistSession: false } });
 const tag = randomBytes(3).toString("hex");
 const admin = { email: `e2e-settings-${tag}@example.com`, password: randomBytes(18).toString("base64url") };
@@ -24,7 +26,8 @@ const original = await settings();
 const html = async (path: string) => (await fetch(BASE + path, { cache: "no-store" })).text();
 const setChecked = (b: Browser, name: string, on: boolean) => b.js(`(() => { document.querySelector('input[name="${name}"]').checked = ${on}; })()`);
 const save = async (b: Browser) => {
-  await b.js(`document.querySelectorAll('[role="alert"]').forEach((el) => el.remove())`);
+  // Wait for earlier pop-ups to close by themselves (removing them would break React), so only the new result is read.
+  await b.waitFor(() => b.js<boolean>(`document.querySelectorAll('[data-sonner-toast]').length === 0`), 15000);
   await b.clickText("button", "Save store & delivery");
   await b.waitFor(async () => /Store and delivery settings saved|Please fix|changed somewhere|Pakistan Post needs/.test(await b.text()), 20000);
   await sleep(300);
@@ -57,7 +60,7 @@ try {
   await b.fill('[name="courierFee"]', "612");
   await b.fill('textarea[name="deliveryNotes"]', note);
   t = await save(b);
-  r.check("settings saved", t.includes("Store and delivery settings saved"));
+  r.check("settings saved", t.includes("Store and delivery settings saved"), t.slice(t.indexOf("Settings"), t.indexOf("Settings") + 900));
   const saved = await settings();
   r.check("database has the new values", saved.courier_fee === 612 && saved.cod_enabled === false && saved.delivery_notes === note, JSON.stringify(saved));
 

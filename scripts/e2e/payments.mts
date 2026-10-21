@@ -6,8 +6,10 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
 import { launchBrowser, reporter, signIn, sleep, type Browser } from "./lib";
+import { clearOrderRateLimits } from "./lib";
 
 const env = loadScriptEnv();
+await clearOrderRateLimits(env.url, env.serviceKey);
 const svc = createClient<Database>(env.url, env.serviceKey, { auth: { persistSession: false } });
 const tag = randomBytes(3).toString("hex");
 const admin = { email: `e2e-pay-${tag}@example.com`, password: randomBytes(18).toString("base64url") };
@@ -25,6 +27,8 @@ const original = await settings();
 const setChecked = (b: Browser, name: string, on: boolean) =>
   b.js(`(() => { const el = document.querySelector('input[name="${name}"]'); el.checked = ${on}; })()`);
 const save = async (b: Browser) => {
+  // Wait for earlier pop-ups to close by themselves (removing them would break React), so only the new result is read.
+  await b.waitFor(() => b.js<boolean>(`document.querySelectorAll('[data-sonner-toast]').length === 0`), 15000);
   await b.clickText("button", "Save payment details");
   await b.waitFor(async () => /Payment details saved|Please fix the highlighted fields|changed somewhere else/.test(await b.text()), 20000);
   await sleep(300);
@@ -54,6 +58,7 @@ try {
 
   // 2. Valid details (messy spacing on purpose) -> saved and cleaned up
   await setChecked(b, "jazzcashEnabled", true);
+  await setChecked(b, "easypaisaEnabled", false); // no Easypaisa number yet: it must be off to save
   await b.fill('[name="jazzcashNumber"]', "0300 111 2223");
   await b.fill('[name="jazzcashTitle"]', "E2E Jazz Title");
   await setChecked(b, "bankEnabled", true);

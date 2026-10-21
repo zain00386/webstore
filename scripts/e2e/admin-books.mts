@@ -96,7 +96,9 @@ try {
   await b.clickText("button", "Save changes");
   await b.waitForText(/Saved 1 book/);
   r.check("quick edit saved stock 0", (await bookRow())?.stock_quantity === 0);
-  const showsOut = (h: string) => h.includes("Out of stock") && !h.includes(">In stock<");
+  // Only the book itself: "You may also like" lists other books with their own "In stock" badges.
+  const mainPart = (h: string) => h.split("You may also like")[0];
+  const showsOut = (h: string) => mainPart(h).includes("Out of stock") && !mainPart(h).includes(">In stock<");
   const loads: boolean[] = [];
   for (let i = 0; i < 4; i++) {
     loads.push(showsOut(await shopHtml(`/books/${slug}`)));

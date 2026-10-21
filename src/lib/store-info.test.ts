@@ -41,7 +41,7 @@ describe("store info from settings", () => {
   });
 
   it("builds a maps link for a new address", () => {
-    expect(buildStoreInfo({ ...settings, address: "Bank Road, Saddar" }).mapsUrl).toContain("Bank%20Road%2C%20Saddar");
+    expect(buildStoreInfo({ ...settings, address: "Bank Road, Saddar" }).mapsUrl).toContain("Dogar's%20Unique%20Books%2C%20Bank%20Road%2C%20Saddar");
   });
 
   it("falls back to the built-in details without a database", () => {

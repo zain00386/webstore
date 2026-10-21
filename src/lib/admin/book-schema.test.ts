@@ -84,7 +84,7 @@ describe("bookFormSchema", () => {
 });
 
 describe("quickEditSchema", () => {
-  const row = { id: "00000000-0000-4000-8000-000000000001", updatedAt: "2026-10-18T10:00:00.000+00:00", price: 500, stockQuantity: 3, isActive: true };
+  const row = { id: "00000000-0000-4000-8000-000000000001", updatedAt: "2026-10-18T10:00:00.000+00:00", price: 500, stockQuantity: 3, isActive: true, isNewArrival: false };
   it("accepts sensible changes, including prices like 19.99", () => {
     expect(quickEditSchema.safeParse([row]).success).toBe(true);
     for (const price of [19.99, 0.1, 1250.5, 0]) expect(quickEditSchema.safeParse([{ ...row, price }]).success, String(price)).toBe(true);
@@ -116,6 +116,7 @@ const book = (over: Partial<AdminBookRow>): AdminBookRow => ({
   is_active: true,
   category_id: "c1",
   updated_at: "2026-10-18T10:00:00Z",
+  is_new_arrival: false,
   ...over,
 });
 

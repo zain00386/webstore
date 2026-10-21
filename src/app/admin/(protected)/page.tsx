@@ -101,6 +101,12 @@ export default async function AdminOverviewPage() {
             : prices, stock and new books
           </li>
           <li>
+            <Link href="/admin/books?home=new" className="underline">
+              New arrivals
+            </Link>
+            : choose which books show in &ldquo;New arrivals&rdquo; on the home page (tick or untick in the list)
+          </li>
+          <li>
             <Link href="/admin/posts/new" className="underline">
               New post
             </Link>

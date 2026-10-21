@@ -103,7 +103,7 @@ export async function saveBook(_prev: BookFormState, fd: FormData): Promise<Book
 
 export type QuickEditResult = { id: string; ok: true; updatedAt: string } | { id: string; ok: false; error: string };
 
-/** Save price / stock / visibility for many books at once (the quick-edit table). */
+/** Save price / stock / visibility / "New arrival" for many books at once (the quick-edit table). */
 export async function quickUpdateBooks(changes: unknown): Promise<{ results: QuickEditResult[]; error?: string }> {
   await requireAdmin();
   const parsed = quickEditSchema.safeParse(changes);
@@ -114,7 +114,7 @@ export async function quickUpdateBooks(changes: unknown): Promise<{ results: Qui
   for (const c of parsed.data) {
     const { data, error } = await db
       .from("books")
-      .update({ price: c.price, stock_quantity: c.stockQuantity, is_active: c.isActive })
+      .update({ price: c.price, stock_quantity: c.stockQuantity, is_active: c.isActive, is_new_arrival: c.isNewArrival })
       .eq("id", c.id)
       .eq("updated_at", c.updatedAt)
       .select("id, updated_at");

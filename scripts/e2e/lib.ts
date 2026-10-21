@@ -146,3 +146,15 @@ export function reporter() {
     failed: () => results.some((r) => r.startsWith("FAIL") || r.startsWith("ERROR")),
   };
 }
+
+/**
+ * Test orders all come from this computer, so they quickly reach the real
+ * "10 orders per device per hour" limit. Tests clear the order counters first
+ * (server key only; real customers are unaffected).
+ */
+export async function clearOrderRateLimits(url: string, serviceKey: string) {
+  await fetch(`${url.replace(/\/+$/, "")}/rest/v1/rate_limit_hits?bucket=in.(order_device,order_phone)`, {
+    method: "DELETE",
+    headers: { apikey: serviceKey, Authorization: `Bearer ${serviceKey}` },
+  });
+}

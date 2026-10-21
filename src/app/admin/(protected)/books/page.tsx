@@ -32,6 +32,7 @@ export default async function AdminBooksPage({ searchParams }: PageProps<"/admin
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
   const outCount = rows.filter((r) => r.stock_quantity === 0).length;
   const hiddenCount = rows.filter((r) => !r.is_active).length;
+  const newCount = rows.filter((r) => r.is_new_arrival).length;
 
   const quickRows: QuickRow[] = result.rows.map((r) => {
     const t = r.low_stock_threshold ?? threshold;
@@ -45,6 +46,7 @@ export default async function AdminBooksPage({ searchParams }: PageProps<"/admin
       compareAtPrice: r.compare_at_price,
       stock: r.stock_quantity,
       isActive: r.is_active,
+      isNewArrival: r.is_new_arrival,
       updatedAt: r.updated_at,
       lowStock: t != null && t > 0 && r.stock_quantity > 0 && r.stock_quantity <= t,
     };
@@ -56,7 +58,10 @@ export default async function AdminBooksPage({ searchParams }: PageProps<"/admin
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Books</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {rows.length} books · {outCount} out of stock · {hiddenCount} hidden
+            {rows.length} books · {outCount} out of stock · {hiddenCount} hidden ·{" "}
+            <Link href="/admin/books?home=new" className="underline underline-offset-4">
+              {newCount} in New arrivals
+            </Link>
           </p>
         </div>
         <Button asChild size="pill">
@@ -106,6 +111,13 @@ export default async function AdminBooksPage({ searchParams }: PageProps<"/admin
             <option value="all">On sale + hidden</option>
             <option value="active">On sale</option>
             <option value="hidden">Hidden</option>
+          </select>
+        </label>
+        <label className="flex flex-col gap-1 text-xs font-medium">
+          Home page
+          <select name="home" defaultValue={query.home} className={select}>
+            <option value="all">All books</option>
+            <option value="new">New arrivals only</option>
           </select>
         </label>
         <label className="flex flex-col gap-1 text-xs font-medium">

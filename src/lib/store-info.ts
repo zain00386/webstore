@@ -36,7 +36,11 @@ export type StoreInfo = {
   payments: PaymentAvailability;
 };
 
-const mapsFor = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+/** Google Maps searches for the shop's name plus the address, so it lands on the shop's own pin. */
+export const mapsQueryFor = (address: string) => `Dogar's Unique Books, ${address}`;
+const mapsFor = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQueryFor(address))}`;
+/** Map to show inside the page (no API key needed). */
+export const mapsEmbedFor = (address: string) => `https://www.google.com/maps?q=${encodeURIComponent(mapsQueryFor(address))}&output=embed`;
 
 export function buildStoreInfo(s: PublicSettings | null): StoreInfo {
   if (!s) {
@@ -46,7 +50,7 @@ export function buildStoreInfo(s: PublicSettings | null): StoreInfo {
       phoneE164: siteConfig.phoneE164,
       whatsappDisplay: siteConfig.whatsappDisplay,
       address: siteConfig.address,
-      mapsUrl: siteConfig.mapsUrl,
+      mapsUrl: mapsFor(siteConfig.address),
       delivery: defaultDelivery.map((o) => ({ id: o.id, label: o.label, note: o.note, charge: o.charge, codAllowed: o.codAllowed })),
       deliveryNotes: "",
       codAvailable: true,
@@ -74,7 +78,7 @@ export function buildStoreInfo(s: PublicSettings | null): StoreInfo {
     phoneE164: s.whatsapp_e164,
     whatsappDisplay: whatsappDisplay(s.whatsapp_e164),
     address: s.address,
-    mapsUrl: s.address === siteConfig.address ? siteConfig.mapsUrl : mapsFor(s.address),
+    mapsUrl: mapsFor(s.address),
     delivery,
     deliveryNotes: s.delivery_notes ?? "",
     codAvailable,

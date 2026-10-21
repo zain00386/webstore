@@ -36,8 +36,10 @@ export const siteConfig = {
     facebook: "https://www.facebook.com/share/1HuQS8nGCw",
     instagram: "https://www.instagram.com/dogarspublisher/",
   },
+  /** What Google Maps searches for: the shop's name plus its address finds the right pin. */
+  mapsQuery: "Dogar's Unique Books, Iqbal Road, Committee Chowk, Rawalpindi",
   mapsUrl:
-    "https://www.google.com/maps/search/?api=1&query=Iqbal+Road+Committee+Chowk+Rawalpindi",
+    "https://www.google.com/maps/search/?api=1&query=Dogar%27s%20Unique%20Books%2C%20Iqbal%20Road%2C%20Committee%20Chowk%2C%20Rawalpindi",
 } as const;
 
 export const deliveryOptions = [

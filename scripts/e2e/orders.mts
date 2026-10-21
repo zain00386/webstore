@@ -5,8 +5,10 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
 import { BASE, launchBrowser, reporter, sleep, type Browser } from "./lib";
+import { clearOrderRateLimits } from "./lib";
 
 const env = loadScriptEnv();
+await clearOrderRateLimits(env.url, env.serviceKey);
 const svc = createClient<Database>(env.url, env.serviceKey, { auth: { persistSession: false } });
 const tag = randomBytes(3).toString("hex");
 const slug = `e2e-order-book-${tag}`;

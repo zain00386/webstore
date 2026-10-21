@@ -19,13 +19,14 @@ export type QuickRow = {
   compareAtPrice: number | null;
   stock: number;
   isActive: boolean;
+  isNewArrival: boolean;
   updatedAt: string;
   lowStock: boolean;
 };
 
-type Draft = { price: string; stock: string; isActive: boolean };
+type Draft = { price: string; stock: string; isActive: boolean; isNewArrival: boolean };
 
-const toDraft = (r: QuickRow): Draft => ({ price: String(r.price), stock: String(r.stock), isActive: r.isActive });
+const toDraft = (r: QuickRow): Draft => ({ price: String(r.price), stock: String(r.stock), isActive: r.isActive, isNewArrival: r.isNewArrival });
 
 function draftError(d: Draft, row: QuickRow): string | null {
   if (!/^\d+$/.test(d.stock)) return "Stock must be a whole number (0 or more)";
@@ -51,7 +52,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
     () =>
       rows.filter((r) => {
         const d = drafts[r.id];
-        return d.price !== String(r.price) || d.stock !== String(r.stock) || d.isActive !== r.isActive;
+        return d.price !== String(r.price) || d.stock !== String(r.stock) || d.isActive !== r.isActive || d.isNewArrival !== r.isNewArrival;
       }),
     [rows, drafts],
   );
@@ -74,6 +75,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
         price: Number(drafts[r.id].price),
         stockQuantity: Number(drafts[r.id].stock),
         isActive: drafts[r.id].isActive,
+        isNewArrival: drafts[r.id].isNewArrival,
       }));
       const { results, error } = await quickUpdateBooks(payload);
       if (error) {
@@ -88,7 +90,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
           const res = byId[r.id];
           if (!res?.ok) return r;
           const d = drafts[r.id];
-          return { ...r, price: Number(d.price), stock: Number(d.stock), isActive: d.isActive, updatedAt: res.updatedAt };
+          return { ...r, price: Number(d.price), stock: Number(d.stock), isActive: d.isActive, isNewArrival: d.isNewArrival, updatedAt: res.updatedAt };
         }),
       );
       const ok = results.filter((r) => r.ok).length;
@@ -108,7 +110,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
     <div className="space-y-3">
       <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface/95 p-3 ring-1 ring-border backdrop-blur">
         <p className="text-sm" aria-live="polite">
-          {changed.length === 0 ? "Change price, stock or 'On sale', then save." : `${changed.length} unsaved change${changed.length === 1 ? "" : "s"}`}
+          {changed.length === 0 ? "Change price, stock, 'On sale' or 'New arrival', then save." : `${changed.length} unsaved change${changed.length === 1 ? "" : "s"}`}
           {invalid.length > 0 && <span className="ml-2 font-medium text-destructive">{invalid.length} need fixing</span>}
         </p>
         <div className="flex gap-2">
@@ -130,6 +132,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
               <th scope="col" className="w-32 p-3 font-medium">Price (Rs.)</th>
               <th scope="col" className="w-28 p-3 font-medium">Stock</th>
               <th scope="col" className="w-24 p-3 font-medium">On sale</th>
+              <th scope="col" className="w-28 p-3 font-medium">New arrival</th>
               <th scope="col" className="w-12 p-3"><span className="sr-only">Edit</span></th>
             </tr>
           </thead>
@@ -143,12 +146,12 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                 <tr
                   key={r.id}
                   className={cn(
-                    "grid grid-cols-3 gap-x-2 gap-y-2 p-3 md:table-row md:p-0",
+                    "grid grid-cols-2 gap-x-2 gap-y-2 p-3 sm:grid-cols-4 md:table-row md:p-0",
                     isChanged && "bg-warning-soft/40",
                     res && !res.ok && "bg-brand-soft/60",
                   )}
                 >
-                  <td className="col-span-3 md:p-3">
+                  <td className="col-span-full md:p-3">
                     <div className="flex items-center gap-3">
                       <span className="relative block h-12 w-9 shrink-0 overflow-hidden rounded bg-muted">
                         {r.coverUrl && (
@@ -218,6 +221,21 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                       />
                       <span className="sr-only">Show {r.title} in the shop</span>
                       <span className="text-xs text-muted-foreground" aria-hidden>{d.isActive ? "Yes" : "Hidden"}</span>
+                    </label>
+                  </td>
+                  <td className="md:p-3">
+                    <span className="mb-1 block text-xs text-muted-foreground md:hidden" aria-hidden>
+                      New arrival
+                    </span>
+                    <label className="flex h-9 items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={d.isNewArrival}
+                        onChange={(e) => update(r.id, { isNewArrival: e.target.checked })}
+                        className="size-4 accent-[var(--primary)]"
+                      />
+                      <span className="sr-only">Show {r.title} in New arrivals on the home page</span>
+                      <span className="text-xs text-muted-foreground" aria-hidden>{d.isNewArrival ? "Yes" : "No"}</span>
                     </label>
                   </td>
                   <td className="hidden md:table-cell md:p-3">

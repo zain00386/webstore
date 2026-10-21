@@ -56,5 +56,6 @@ export function articleJsonLd(post: Post) {
 
 /** Safe <script type="application/ld+json"> contents: "<" escaped so text can never close the tag. */
 export function jsonLdHtml(data: unknown): { __html: string } {
-  return { __html: JSON.stringify(data).replace(/</g, "\u003c") };
+  // "<" becomes the JSON escape \u003c (backslash written separately so no tool can turn it back into "<").
+  return { __html: JSON.stringify(data).replace(/</g, "\\" + "u003c") };
 }

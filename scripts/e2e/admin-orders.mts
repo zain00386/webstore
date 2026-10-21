@@ -40,10 +40,14 @@ async function openOrder(b: Browser, id: string) {
   await b.go(`/admin/orders/${id}`);
   await b.waitForText("What next?", 30000);
 }
-/** Clicks a button by its text and waits for the page to show the result. */
-async function press(b: Browser, label: string, expect: string | RegExp) {
+/** One-click step: press the button, then wait until the database has the new status AND the page has refreshed. */
+async function step(b: Browser, label: string, orderId: string, status: string) {
   await b.clickText("button", label);
-  return b.waitForText(expect, 20000);
+  // Wait for the BUTTON to go (the history list keeps showing the step's name).
+  const buttonGone = () =>
+    b.js<boolean>(`![...document.querySelectorAll("button")].some((x) => x.textContent.trim().startsWith(${JSON.stringify(label)}))`);
+  await b.waitFor(async () => (await orderRow(orderId)).status === status && (await buttonGone()) && (await b.text()).includes("What next?"), 20000);
+  await sleep(300);
 }
 const dialogSubmit = (b: Browser, label: string) =>
   b.js(`[...document.querySelectorAll('[role="dialog"] button[type="submit"]')].find(x => x.textContent.includes(${JSON.stringify(label)}))?.click()`);
@@ -84,9 +88,16 @@ try {
   t = await b.text();
   r.check("order page shows customer, note and items", t.includes("E2E Admin Customer") && t.includes("Please call first") && t.includes("× 2"));
   r.check("COD order can't be marked paid before shipping", !t.includes("Mark paid"));
-  await press(b, "Confirm order", "Mark packed");
+  await step(b, "Confirm order", cod.id, "confirmed");
   r.check("confirm → Confirmed", (await orderRow(cod.id)).status === "confirmed");
-  await press(b, "Mark packed", "Mark shipped");
+  await b.clickText("button", "Mark packed");
+  // Wait until "Packed" is saved and the page has refreshed (the old page also had "Mark shipped").
+  await b.waitFor(
+    async () =>
+      (await orderRow(cod.id)).status === "processing" &&
+      (await b.js<boolean>(`![...document.querySelectorAll("button")].some((x) => x.textContent.trim().startsWith("Mark packed"))`)),
+    20000,
+  );
   await b.clickText("button", "Mark shipped");
   await b.waitFor(async () => b.js<boolean>(`!!document.querySelector('[role="dialog"] select[name="shippedVia"]')`), 10000);
   await b.js(`(() => { const s = document.querySelector('[role="dialog"] select[name="shippedVia"]'); s.value = 'M&P'; })()`);
@@ -94,11 +105,12 @@ try {
   await dialogSubmit(b, "Mark shipped");
   await b.waitForText("Mark delivered", 20000);
   let row = await orderRow(cod.id);
+  if (row.status !== "shipped") r.info(`after ship: ${(await b.text()).slice(0, 1200)}`);
   r.check("shipped with courier and tracking number saved", row.status === "shipped" && row.shipped_via === "M&P" && row.tracking_number === "MP-778899", JSON.stringify(row));
   r.check("shipping didn't touch payment", row.payment_status === "pending");
   const customerPage = await (await fetch(`${BASE}/order-confirmation/${cod.number}?t=${cod.token}`)).text();
   r.check("customer page shows M&P and the tracking number", customerPage.includes("M&amp;P") && customerPage.includes("MP-778899"));
-  await press(b, "Mark delivered", "Mark paid");
+  await step(b, "Mark delivered", cod.id, "delivered");
   await b.clickText("button", "Mark paid");
   await b.waitFor(async () => b.js<boolean>(`!!document.querySelector('[role="dialog"] input[type="checkbox"]')`), 10000);
   await dialogSubmit(b, "Mark paid"); // checkbox not ticked: the browser blocks it
@@ -115,9 +127,9 @@ try {
 
   // JazzCash order: can't ship until marked paid
   await openOrder(b, jazz.id);
-  await press(b, "Confirm order", "Mark packed");
+  await step(b, "Confirm order", jazz.id, "confirmed");
   t = await b.text();
-  r.check("unpaid JazzCash order has no 'Mark shipped' button", !t.includes("Mark shipped") && t.includes("before shipping"));
+  r.check("unpaid JazzCash order has no 'Mark shipped' button", !t.includes("Mark shipped") && t.includes("before shipping"), t.slice(0, 700));
   await b.clickText("button", "Mark paid");
   await b.waitFor(async () => b.js<boolean>(`!!document.querySelector('[role="dialog"] input[type="checkbox"]')`), 10000);
   t = await b.text();

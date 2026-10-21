@@ -7,6 +7,7 @@ import { BookGallery } from "@/components/book/book-gallery";
 import { ShareButton } from "@/components/book/share-button";
 import { allExams } from "@/config/exams";
 import { getStoreInfo } from "@/lib/db/store-info";
+import { jsonLdHtml } from "@/lib/seo/json-ld";
 import { relatedBooks } from "@/lib/catalog/selectors";
 import { getCatalogState } from "@/lib/db/catalog";
 import { productJsonLd } from "@/lib/seo/product-json-ld";
@@ -109,7 +110,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
       <script
         type="application/ld+json"
         // JSON-LD for Google; "<" is escaped so book text can never close the script tag.
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
+        dangerouslySetInnerHTML={jsonLdHtml(jsonLd)}
       />
       <Breadcrumbs
         items={[

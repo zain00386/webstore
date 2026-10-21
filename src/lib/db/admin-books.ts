@@ -12,7 +12,7 @@ import { DataError } from "./queries";
  */
 
 const LIST_COLUMNS =
-  "id, slug, title, subtitle, author, publisher, isbn, price, compare_at_price, stock_quantity, low_stock_threshold, cover_image_path, is_active, category_id, updated_at";
+  "id, slug, title, subtitle, author, publisher, isbn, price, compare_at_price, stock_quantity, low_stock_threshold, cover_image_path, is_active, is_new_arrival, category_id, updated_at";
 
 export async function fetchAdminBookRows(db: Db): Promise<AdminBookRow[]> {
   const rows: AdminBookRow[] = [];

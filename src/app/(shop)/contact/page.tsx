@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { InfoPage } from "@/components/layout/info-page";
 import { ContactForm } from "@/components/store/contact-form";
 import { ShopCard } from "@/components/store/shop-card";
+import { ShopMap } from "@/components/store/shop-map";
 import { getStoreInfo } from "@/lib/db/store-info";
 import { jsonLdHtml, storeJsonLd } from "@/lib/seo/json-ld";
 
@@ -25,6 +26,7 @@ export default async function ContactPage() {
         intro="Visit our shop, call, or send us a WhatsApp message. We usually reply during shop hours."
       >
         <ShopCard />
+        <ShopMap address={store.address} />
         <ContactForm phoneE164={store.phoneE164} />
       </InfoPage>
     </>

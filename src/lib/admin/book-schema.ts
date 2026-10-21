@@ -145,6 +145,7 @@ export const quickEditSchema = z
         .refine((n) => Math.abs(n * 100 - Math.round(n * 100)) < 1e-6, "Price can have at most 2 decimals"),
       stockQuantity: z.number().int().min(0).max(100_000),
       isActive: z.boolean(),
+      isNewArrival: z.boolean(),
     }),
   )
   .min(1)

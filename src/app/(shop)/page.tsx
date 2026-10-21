@@ -16,6 +16,7 @@ import { SetupNotice } from "@/components/feedback/setup-notice";
 import { PostCard } from "@/components/blog/post-card";
 import { BookGrid, BookRow } from "@/components/book/shop-book-card";
 import { TrustRow } from "@/components/store/trust-row";
+import { ShopMap } from "@/components/store/shop-map";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { buildHeroSlides } from "@/lib/home/hero-slides";
 import { SectionHeading } from "@/components/layout/section-heading";
@@ -237,7 +238,13 @@ export default async function HomePage() {
               </a>
             </Button>
           ))}
+          <Button asChild variant="outline">
+            <a href={store.mapsUrl} target="_blank" rel="noopener noreferrer">
+              <MapPin aria-hidden /> Get directions
+            </a>
+          </Button>
         </div>
+        <ShopMap address={store.address} className="mt-6" />
       </section>
     </div>
   );
