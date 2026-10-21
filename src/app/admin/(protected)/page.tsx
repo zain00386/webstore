@@ -31,7 +31,7 @@ export default async function AdminOverviewPage() {
         .from("orders")
         .select("id", { count: "exact", head: true })
         .eq("payment_status", "pending")
-        .in("payment_method", ["jazzcash", "easypaisa"])
+        .neq("payment_method", "cod")
         .neq("status", "cancelled"),
     ),
   ]);
@@ -40,8 +40,8 @@ export default async function AdminOverviewPage() {
     { label: "Books on sale", value: activeBooks, icon: BookCopy },
     { label: "Out of stock", value: outOfStock, icon: PackageX, tone: "warn" },
     { label: "Hidden books", value: hiddenBooks, icon: EyeOff },
-    { label: "New orders", value: pendingOrders, icon: ShoppingCart },
-    { label: "Payments to verify", value: pendingPayments, icon: Wallet, tone: "warn" },
+    { label: "New orders", value: pendingOrders, icon: ShoppingCart, href: "/admin/orders?view=pending" },
+    { label: "Payments to verify", value: pendingPayments, icon: Wallet, tone: "warn", href: "/admin/orders?view=verify" },
   ];
   const failed = stats.some((s) => s.value === null);
 
@@ -59,31 +59,37 @@ export default async function AdminOverviewPage() {
       )}
 
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {stats.map(({ label, value, icon: Icon, tone }) => (
-          <li key={label} className="rounded-2xl bg-card p-5 ring-1 ring-border">
-            <div className="mb-3 flex items-center justify-between text-muted-foreground">
-              <span className="text-sm">{label}</span>
-              <Icon className="size-4" aria-hidden />
-            </div>
-            <p className={`text-3xl font-semibold tabular-nums ${tone === "warn" && value ? "text-brand" : ""}`}>
-              {value ?? "–"}
-            </p>
-          </li>
-        ))}
+        {stats.map(({ label, value, icon: Icon, tone, href }) => {
+          const body = (
+            <>
+              <div className="mb-3 flex items-center justify-between text-muted-foreground">
+                <span className="text-sm">{label}</span>
+                <Icon className="size-4" aria-hidden />
+              </div>
+              <p className={`text-3xl font-semibold tabular-nums ${tone === "warn" && value ? "text-brand" : ""}`}>
+                {value ?? "–"}
+              </p>
+            </>
+          );
+          return (
+            <li key={label}>
+              {href ? (
+                <Link href={href} className="block h-full rounded-2xl bg-card p-5 ring-1 ring-border hover:ring-primary">
+                  {body}
+                </Link>
+              ) : (
+                <div className="h-full rounded-2xl bg-card p-5 ring-1 ring-border">{body}</div>
+              )}
+            </li>
+          );
+        })}
       </ul>
 
       <section className="rounded-2xl bg-surface p-5 ring-1 ring-border">
         <h2 className="mb-2 font-semibold">Coming next</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>
-            <Link href="/admin/books" className="underline">
-              Books
-            </Link>
-            : add and edit books, set real stock and prices (Phase 6)
-          </li>
-          <li>Orders: see and manage customer orders (Phases 8–10)</li>
           <li>Posts: publish job vacancies and articles (Phase 11)</li>
-          <li>Settings: delivery fees and JazzCash / Easypaisa details (Phase 12)</li>
+          <li>Settings: delivery fees and store details (Phase 12)</li>
         </ul>
         {outOfStock === 0 && (
           <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">

@@ -118,6 +118,19 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
 
       {!cancelled && <OrderProgress status={order.status} />}
 
+      {(order.status === "shipped" || order.status === "delivered") && order.shippedVia && (
+        <Alert tone="success" title={order.status === "delivered" ? "Delivered" : "On its way"}>
+          Sent with {order.shippedVia}
+          {order.trackingNumber && (
+            <>
+              {" "}
+              · tracking number <strong className="tabular-nums">{order.trackingNumber}</strong>
+            </>
+          )}
+          .
+        </Alert>
+      )}
+
       {!cancelled &&
         order.paymentStatus !== "paid" &&
         (isTransfer ? (

@@ -20,6 +20,8 @@ export type CustomerOrder = {
   address: string;
   city: string;
   notes: string | null;
+  shippedVia: string | null;
+  trackingNumber: string | null;
   items: { title: string; unitPrice: number; quantity: number; lineTotal: number }[];
 };
 
@@ -41,7 +43,7 @@ export async function fetchOrderForCustomer(orderNumber: string, token: string):
   const { data: o } = await db
     .from("orders")
     .select(
-      "id, order_number, created_at, status, payment_status, payment_method, delivery_method, subtotal, delivery_fee, total, customer_name, customer_phone, address, city, notes, access_token_hash",
+      "id, order_number, created_at, status, payment_status, payment_method, delivery_method, subtotal, delivery_fee, total, customer_name, customer_phone, address, city, notes, shipped_via, tracking_number, access_token_hash",
     )
     .eq("order_number", orderNumber)
     .maybeSingle();
@@ -66,6 +68,8 @@ export async function fetchOrderForCustomer(orderNumber: string, token: string):
     address: o.address,
     city: o.city,
     notes: o.notes,
+    shippedVia: o.shipped_via,
+    trackingNumber: o.tracking_number,
     items: (items ?? []).map((i) => ({
       title: i.title_snapshot,
       unitPrice: Number(i.unit_price),

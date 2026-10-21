@@ -142,6 +142,10 @@ export type OrderRow = Timestamps & {
   paid_verified_by: string | null;
   cancelled_at: string | null;
   cancel_reason: string | null;
+  shipped_via: string | null;
+  tracking_number: string | null;
+  shipped_at: string | null;
+  delivered_at: string | null;
 };
 
 export type OrderItemRow = {
@@ -216,6 +220,18 @@ export type Database = {
           p_items: { book_id: string; quantity: number }[];
         };
         Returns: { order_id: string; order_number: string; total: number; created: boolean }[];
+      };
+      admin_update_order: {
+        Args: {
+          p_order_id: string;
+          p_expected_updated_at: string;
+          p_action: string;
+          p_note?: string | null;
+          p_shipped_via?: string | null;
+          p_tracking_number?: string | null;
+        };
+        /** The order's new updated_at. */
+        Returns: string;
       };
     };
     Enums: {

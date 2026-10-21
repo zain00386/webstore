@@ -97,6 +97,17 @@ if (pubRow && ["jazzcash_number", "easypaisa_number", "bank_account_number", "ba
   fail("Public settings expose payment account numbers", "Re-run supabase/migrations/20261021000005_bank_transfer.sql.");
 }
 
+// 3d. Admin order step (migration 0006). Called without an admin login, it must refuse.
+const adminStep = await server.rpc("admin_update_order", {
+  p_order_id: "00000000-0000-4000-8000-000000000000",
+  p_expected_updated_at: new Date().toISOString(),
+  p_action: "confirm",
+});
+if (adminStep.error?.message.includes("NOT_ADMIN")) ok("Admin order management is installed");
+else if (adminStep.error && /Could not find the function|does not exist/i.test(adminStep.error.message)) {
+  fail("Admin order management is missing", "Paste supabase/migrations/20261021000006_admin_orders.sql into the SQL Editor and click Run.");
+} else fail(`Admin order check gave an unexpected result: ${adminStep.error?.message ?? "no error"}`);
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });
