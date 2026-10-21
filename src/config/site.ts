@@ -52,6 +52,7 @@ export const examShortcuts = [
 ] as const;
 
 export const footerLinks = [
+  { label: "My orders", href: "/orders" },
   { label: "About us", href: "/about" },
   { label: "Contact", href: "/contact" },
   { label: "Shipping", href: "/shipping" },

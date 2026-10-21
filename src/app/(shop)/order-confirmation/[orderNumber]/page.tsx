@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
-import { CheckCircle2, Clock, MapPin, MessageCircle, Package, SearchX, Wallet } from "lucide-react";
+import { Check, CheckCircle2, Clock, ListOrdered, MapPin, MessageCircle, Package, SearchX, Wallet, XCircle } from "lucide-react";
 import { deliveryOptions } from "@/config/site";
 import { paymentLabels } from "@/lib/checkout/rules";
 import { fetchOrderForCustomer, fetchPaymentDetails, type CustomerOrder, type PaymentDetails } from "@/lib/db/customer-orders";
@@ -11,6 +11,9 @@ import { Alert } from "@/components/feedback/alert";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/orders/copy-button";
+import { RememberOrder } from "@/components/orders/remember-order";
+import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
@@ -49,9 +52,19 @@ async function OrderView({ orderNumber, token }: { orderNumber: string; token: s
       />
     );
   }
-  const payment = order.paymentMethod === "cod" ? null : await fetchPaymentDetails();
-  return <OrderDetails order={order} payment={payment} />;
+  const payment = await fetchPaymentDetails();
+  return (
+    <>
+      <RememberOrder orderNumber={order.orderNumber} token={token} />
+      <OrderDetails order={order} payment={payment} />
+    </>
+  );
 }
+
+/** The normal journey of an order, shown as steps. "cancelled" is shown separately. */
+const steps = ["pending", "confirmed", "processing", "shipped", "delivered"] as const;
+
+const placedAt = new Intl.DateTimeFormat("en-PK", { dateStyle: "long", timeStyle: "short", timeZone: "Asia/Karachi" });
 
 const statusLabel: Record<string, string> = {
   pending: "Received",
@@ -62,40 +75,51 @@ const statusLabel: Record<string, string> = {
   cancelled: "Cancelled",
 };
 
-function OrderDetails({ order, payment }: { order: CustomerOrder; payment: PaymentDetails | null }) {
+function OrderDetails({ order, payment }: { order: CustomerOrder; payment: PaymentDetails }) {
   const delivery = deliveryOptions.find((o) => o.id === order.deliveryMethod)?.label ?? order.deliveryMethod;
   const isTransfer = order.paymentMethod !== "cod";
-  const account = order.paymentMethod === "jazzcash" ? payment?.jazzcash : order.paymentMethod === "easypaisa" ? payment?.easypaisa : null;
-  const whatsappText = `Assalam-o-Alaikum, my order number is ${order.orderNumber}.`;
+  const cancelled = order.status === "cancelled";
+  const account = order.paymentMethod === "jazzcash" ? payment.jazzcash : order.paymentMethod === "easypaisa" ? payment.easypaisa : null;
+  const whatsappText =
+    isTransfer && order.paymentStatus !== "paid" && !cancelled
+      ? `Assalam-o-Alaikum, I have sent ${formatPKR(order.total)} by ${paymentLabels[order.paymentMethod]} for order ${order.orderNumber}. Here is the payment screenshot:`
+      : `Assalam-o-Alaikum, my order number is ${order.orderNumber}.`;
+  const paymentBadge = paymentBadgeFor(order.paymentStatus, isTransfer, cancelled);
 
   return (
     <div className="space-y-6">
       <div className="text-center">
-        <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden />
+        {cancelled ? (
+          <XCircle className="mx-auto size-14 text-destructive" aria-hidden />
+        ) : (
+          <CheckCircle2 className="mx-auto size-14 text-success" aria-hidden />
+        )}
         <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-          {order.status === "cancelled" ? "This order was cancelled" : "Thank you, your order is placed"}
+          {cancelled ? "This order was cancelled" : "Thank you, your order is placed"}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">Keep this page or its link: it&apos;s how you can check your order.</p>
-        <p className="mx-auto mt-4 w-fit rounded-2xl bg-surface px-6 py-3 ring-1 ring-border">
-          <span className="block text-xs text-muted-foreground">Order number</span>
-          <span className="text-2xl font-semibold tracking-wide">{order.orderNumber}</span>
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">Placed on {placedAt.format(new Date(order.createdAt))}</p>
+        <div className="mx-auto mt-4 flex w-fit items-center gap-2 rounded-2xl bg-surface py-3 pr-3 pl-6 ring-1 ring-border">
+          <p>
+            <span className="block text-xs text-muted-foreground">Order number</span>
+            <span className="text-2xl font-semibold tracking-wide">{order.orderNumber}</span>
+          </p>
+          <CopyButton value={order.orderNumber} label="Order number" />
+        </div>
         <div className="mt-3 flex flex-wrap justify-center gap-2">
           <Badge variant="secondary">
             <Package aria-hidden /> Order: {statusLabel[order.status] ?? order.status}
           </Badge>
-          <Badge variant={order.paymentStatus === "paid" ? "success" : "warning"}>
+          <Badge variant={paymentBadge.variant}>
             <Wallet aria-hidden />
-            {order.paymentStatus === "paid"
-              ? "Payment received"
-              : isTransfer
-                ? "Payment pending verification"
-                : "Pay in cash on delivery"}
+            {paymentBadge.label}
           </Badge>
         </div>
       </div>
 
-      {order.status !== "cancelled" &&
+      {!cancelled && <OrderProgress status={order.status} />}
+
+      {!cancelled &&
+        order.paymentStatus !== "paid" &&
         (isTransfer ? (
           <section aria-labelledby="pay-title" className="space-y-3 rounded-3xl bg-warning-soft/60 p-5 ring-1 ring-warning/30">
             <h2 id="pay-title" className="flex items-center gap-2 font-semibold">
@@ -105,7 +129,10 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
               <dl className="grid gap-2 rounded-2xl bg-card p-4 text-sm ring-1 ring-border sm:grid-cols-3">
                 <div>
                   <dt className="text-xs text-muted-foreground">{paymentLabels[order.paymentMethod]} number</dt>
-                  <dd className="text-lg font-semibold tabular-nums">{account.number}</dd>
+                  <dd className="flex items-center gap-1 text-lg font-semibold tabular-nums">
+                    {account.number}
+                    <CopyButton value={account.number} label={`${paymentLabels[order.paymentMethod]} number`} />
+                  </dd>
                 </div>
                 {account.title && (
                   <div>
@@ -128,7 +155,11 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
               <li>Send the payment screenshot to us on WhatsApp.</li>
               <li>We dispatch your books after we confirm the payment in our account.</li>
             </ol>
-            {payment?.instructions && <p className="text-xs text-muted-foreground">{payment.instructions}</p>}
+            {payment.instructions && <p className="text-xs text-muted-foreground">{payment.instructions}</p>}
+            <p className="text-xs text-muted-foreground">
+              Sending a screenshot doesn&apos;t mark the order paid by itself: the status here changes to
+              &ldquo;Payment received&rdquo; once we see the money in our account.
+            </p>
           </section>
         ) : (
           <Alert tone="info" title="Next step">
@@ -136,6 +167,16 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
             your order before dispatch.
           </Alert>
         ))}
+
+      {!cancelled && (
+        <p className="rounded-2xl bg-surface px-4 py-3 text-sm text-muted-foreground ring-1 ring-border">
+          We don&apos;t send SMS or email updates yet. Bookmark this page, or find it any time under{" "}
+          <Link href="/orders" className="font-medium text-foreground underline underline-offset-4">
+            My orders
+          </Link>{" "}
+          on this device. Anyone with this link can see your order, so share it only with us.
+        </p>
+      )}
 
       <section aria-labelledby="items-title" className="rounded-3xl bg-card p-5 ring-1 ring-border">
         <h2 id="items-title" className="mb-3 font-semibold">
@@ -185,14 +226,61 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
 
       <div className="flex flex-wrap justify-center gap-2">
         <Button asChild size="pill" className="bg-whatsapp hover:bg-whatsapp/90">
-          <a href={whatsappLink(payment?.whatsapp ?? "923249574895", whatsappText)} target="_blank" rel="noopener noreferrer">
+          <a href={whatsappLink(payment.whatsapp, whatsappText)} target="_blank" rel="noopener noreferrer">
             <MessageCircle aria-hidden /> WhatsApp us about this order
           </a>
         </Button>
         <Button asChild variant="outline" size="pill">
           <Link href="/books">Continue shopping</Link>
         </Button>
+        <Button asChild variant="ghost" size="pill">
+          <Link href="/orders">
+            <ListOrdered aria-hidden /> My orders
+          </Link>
+        </Button>
       </div>
     </div>
+  );
+}
+
+function paymentBadgeFor(
+  status: string,
+  isTransfer: boolean,
+  cancelled: boolean,
+): { label: string; variant: "success" | "warning" | "secondary" } {
+  if (status === "paid") return { label: "Payment received", variant: "success" };
+  if (status === "refunded") return { label: "Payment refunded", variant: "secondary" };
+  if (cancelled) return { label: "No payment due", variant: "secondary" };
+  if (status === "failed") return { label: "Payment not received", variant: "warning" };
+  return isTransfer
+    ? { label: "Payment pending verification", variant: "warning" }
+    : { label: "Pay in cash on delivery", variant: "warning" };
+}
+
+/** Received → Confirmed → Being packed → Shipped → Delivered, with the current step highlighted. */
+function OrderProgress({ status }: { status: string }) {
+  const current = steps.indexOf(status as (typeof steps)[number]);
+  return (
+    <ol aria-label="Order progress" className="grid grid-cols-5 gap-1 rounded-3xl bg-card p-4 ring-1 ring-border">
+      {steps.map((step, i) => {
+        const done = i <= current;
+        return (
+          <li key={step} aria-current={i === current ? "step" : undefined} className="flex flex-col items-center gap-1.5 text-center">
+            <span
+              className={cn(
+                "flex size-7 items-center justify-center rounded-full text-xs font-semibold",
+                done ? "bg-success text-white" : "bg-muted text-muted-foreground",
+              )}
+            >
+              {done ? <Check className="size-4" aria-hidden /> : i + 1}
+            </span>
+            <span className={cn("text-[0.7rem] leading-tight sm:text-xs", i === current ? "font-semibold" : "text-muted-foreground")}>
+              {statusLabel[step]}
+              {done && <span className="sr-only"> (done)</span>}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }

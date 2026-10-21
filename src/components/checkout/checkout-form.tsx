@@ -36,6 +36,7 @@ import { useCartCheck } from "@/components/cart/use-cart-check";
 import { purchasableLines } from "@/lib/cart/cart";
 import { hasBlockingLines } from "@/lib/cart/reconcile";
 import { getCartSnapshot, writeCart } from "@/components/cart/cart-store";
+import { orderPath, rememberOrder } from "@/lib/orders/recent-orders";
 import { placeOrder } from "@/app/(shop)/checkout/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -155,9 +156,7 @@ export function CheckoutForm() {
         succeeded = true;
         rememberOrder(result.orderNumber, result.token);
         writeCart([]); // order placed: empty the cart
-        router.push(
-          `/order-confirmation/${result.orderNumber}?t=${encodeURIComponent(result.token)}`,
-        );
+        router.push(orderPath(result)); // token is base64url: safe in a URL as-is
         return; // the button stays disabled while the confirmation page loads
       }
 
@@ -439,23 +438,4 @@ function newOrderToken(): string {
     .replace(/\+/g, "-")
     .replace(/\//g, "_")
     .replace(/=+$/, "");
-}
-
-/** Keeps the customer's recent order links in this browser so they can find them again. */
-function rememberOrder(orderNumber: string, token: string) {
-  try {
-    const key = "dub-orders-v1";
-    const list = JSON.parse(localStorage.getItem(key) ?? "[]") as {
-      orderNumber: string;
-      token: string;
-      at: string;
-    }[];
-    const next = [
-      { orderNumber, token, at: new Date().toISOString() },
-      ...list.filter((o) => o.orderNumber !== orderNumber),
-    ].slice(0, 10);
-    localStorage.setItem(key, JSON.stringify(next));
-  } catch {
-    // storage blocked: the confirmation link still works
-  }
 }

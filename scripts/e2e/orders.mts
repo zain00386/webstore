@@ -65,6 +65,32 @@ try {
   r.check("stock went down by one", (await stock()) === 1);
   r.check("cart was emptied", (await b.js<string>(`localStorage.getItem('dub-cart-v1')`)) === "[]");
 
+  // Phase 9: confirmation details and "My orders" on this device
+  r.check("confirmation shows the date placed", conf.includes("Placed on"));
+  r.check(
+    "progress steps show 'Received' as the current step",
+    (await b.js<string>(`document.querySelector('[aria-label="Order progress"] [aria-current="step"]')?.textContent ?? ''`)).includes("Received"),
+  );
+  r.check("page says honestly that no SMS/email was sent", conf.includes("We don’t send SMS or email updates yet") || conf.includes("We don't send SMS or email updates yet"));
+  r.check("order number has a copy button", await b.js<boolean>(`!!document.querySelector('button[aria-label="Copy Order number"]')`));
+  const orderNo = confUrl.split("/")[2]!.split("?")[0]!;
+  await b.go("/orders");
+  await b.waitForText(orderNo, 15000);
+  r.check("My orders lists the new order", (await b.text()).includes(orderNo));
+  await b.js(`localStorage.removeItem('dub-orders-v1')`);
+  await b.go(confUrl);
+  await b.waitForText("Thank you, your order is placed", 20000);
+  await sleep(500);
+  r.check(
+    "opening the order link saves it under My orders",
+    (await b.js<string>(`localStorage.getItem('dub-orders-v1') ?? ''`)).includes(orderNo),
+  );
+  await b.go("/orders");
+  await b.waitForText(orderNo, 15000);
+  await b.click(`button[aria-label="Remove ${orderNo} from this device"]`);
+  await b.waitForText("No orders on this device", 10000);
+  r.check("an order can be removed from this device", (await b.text()).includes("No orders on this device"));
+
   // 2. The order page needs the secret link
   const [path, query] = confUrl.split("?");
   const noToken = await (await fetch(BASE + path)).text();
@@ -88,10 +114,22 @@ try {
   const conf2 = await b.text();
   r.check("transfer order shows 'Payment pending verification'", conf2.includes("Payment pending verification"));
   r.check("transfer order total uses Rs. 300 Pakistan Post fee", conf2.includes("Rs. 1,000"));
+  const wa = await b.js<string>(`[...document.querySelectorAll('a')].find(a => a.textContent.includes('WhatsApp us about this order'))?.href ?? ''`);
+  r.check("WhatsApp button pre-fills the payment message", decodeURIComponent(wa).includes("I have sent Rs. 1,000 by JazzCash"), wa);
+  r.check("explains a screenshot alone doesn't mark it paid", conf2.includes("doesn’t mark the order paid") || conf2.includes("doesn't mark the order paid"));
   await sleep(1500);
   orders = await ordersForPhone();
   r.check("triple-click created exactly one more order", orders.length === 2, String(orders.length));
   r.check("stock is now 0 (not negative)", (await stock()) === 0);
+
+  // Cancelled order: page says so and asks for no payment (status changed directly, as an admin would in Phase 10)
+  const transferUrl = await b.url();
+  const transferNo = transferUrl.split("/")[2]!.split("?")[0]!;
+  await svc.from("orders").update({ status: "cancelled", cancelled_at: new Date().toISOString() }).eq("order_number", transferNo);
+  await b.go(transferUrl);
+  await b.waitForText("This order was cancelled", 20000);
+  const cancelledText = await b.text();
+  r.check("cancelled order shows 'No payment due' and no payment request", cancelledText.includes("No payment due") && !cancelledText.includes("Next step"), cancelledText.slice(0, 600));
 
   // 5. Out of stock: checkout refuses
   await b.go("/");

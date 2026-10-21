@@ -1,9 +1,12 @@
 "use server";
 
 import { headers } from "next/headers";
+import { after } from "next/server";
 import { createRateLimiter } from "@/lib/auth/rate-limit";
 import { placeOrderErrorResult, placeOrderSchema, type PlaceOrderResult } from "@/lib/orders/place-order";
 import { hashOrderToken } from "@/lib/orders/token";
+import { orderPath } from "@/lib/orders/recent-orders";
+import { notifyOrderPlaced } from "@/lib/notifications/order-placed";
 import { refreshShop } from "@/lib/db/refresh-shop";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -63,6 +66,18 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
     perDevice.fail(ip);
     perPhone.fail(details.phone);
     refreshShop(); // stock changed: the shop shows it on the next request
+    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+    const notice = {
+      orderNumber: row.order_number,
+      total: Number(row.total),
+      paymentMethod: details.paymentMethod,
+      deliveryMethod: details.deliveryMethod,
+      customerName: details.name,
+      customerPhone: details.phone,
+      customerEmail: details.email || null,
+      orderUrl: siteUrl + orderPath({ orderNumber: row.order_number, token: accessToken }),
+    };
+    after(() => notifyOrderPlaced(notice)); // runs after the reply: a slow service never delays the order
   }
   return { ok: true, orderNumber: row.order_number, token: accessToken, total: Number(row.total) };
 }
