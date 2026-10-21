@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
 import { InfoPage } from "@/components/layout/info-page";
+import { getStoreInfo } from "@/lib/db/store-info";
 
 export const metadata: Metadata = { title: "Returns & exchanges" };
 
 // DRAFT, based on the Lahore main branch's exchange policy. Owner to confirm for Rawalpindi.
-export default function ReturnsPage() {
+export default async function ReturnsPage() {
+  const store = await getStoreInfo();
   return (
     <InfoPage title="Returns & exchanges" draft>
       <h2>Wrong or damaged books</h2>
       <p>
         If you receive the wrong book, or a book that is damaged or has missing or misprinted pages, contact us within 5
-        business days of delivery on WhatsApp {siteConfig.phoneDisplay} with your order number and photos. We will replace
+        business days of delivery on WhatsApp {store.phoneDisplay} with your order number and photos. We will replace
         it at no extra cost.
       </p>
       <h2>Exchanges</h2>

@@ -115,6 +115,10 @@ await server.from("posts").delete().eq("slug", probeSlug);
 if (!probePost.error && probePost.data?.[0]?.published_at) ok("Posts publish with the database clock");
 else fail("Posts can't be published without a date yet", "Paste supabase/migrations/20261021000007_posts_publish_now.sql into the SQL Editor and click Run.");
 
+// 3f. Delivery note setting (migration 0008).
+if (pubRow && "delivery_notes" in pubRow) ok("Delivery settings are installed");
+else fail("Delivery settings are missing", "Paste supabase/migrations/20261021000008_delivery_notes.sql into the SQL Editor and click Run.");
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

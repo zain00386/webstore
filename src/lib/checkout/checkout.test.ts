@@ -1,14 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { deliveryCharge, isPaymentAllowed, orderTotal } from "./rules";
+import { isPaymentAllowed } from "./rules";
 import { checkoutSchema, normalizePhone } from "./schema";
 
 describe("delivery and payment rules", () => {
-  it("charges Rs. 300 for Pakistan Post and Rs. 550 for TCS / Leopards / M&P", () => {
-    expect(deliveryCharge("pakistan_post")).toBe(300);
-    expect(deliveryCharge("courier")).toBe(550);
-    expect(orderTotal(1800, "courier")).toBe(2350);
-  });
-
   it("allows COD only with the courier", () => {
     expect(isPaymentAllowed("pakistan_post", "cod")).toBe(false);
     expect(isPaymentAllowed("courier", "cod")).toBe(true);

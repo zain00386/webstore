@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } from "lucide-react";
 import { categories } from "@/config/categories";
-import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
+import { examShortcuts, siteConfig } from "@/config/site";
+import { getStoreInfo } from "@/lib/db/store-info";
+import { deliveryLine, telHref } from "@/lib/store-info";
 import { umbrellaExams, type ExamDef } from "@/config/exams";
 import { getPublishedPosts } from "@/lib/db/posts";
 import { biggestDiscounts, booksForExam, categoryCounts, examCounts, newArrivals } from "@/lib/catalog/selectors";
 import { getCatalogState } from "@/lib/db/catalog";
-import { formatPKR, whatsappLink } from "@/lib/format";
+import { whatsappLink } from "@/lib/format";
 import { SetupNotice } from "@/components/feedback/setup-notice";
 import { PostCard } from "@/components/blog/post-card";
 import { BookGrid, BookRow } from "@/components/book/shop-book-card";
@@ -26,6 +28,7 @@ function ViewAll({ href, label = "View all" }: { href: string; label?: string })
 
 export default async function HomePage() {
   const state = await getCatalogState();
+  const store = await getStoreInfo();
   const books = state.status === "ready" ? state.catalog.books : [];
   const newBooks = newArrivals(books, 10);
   const onSale = biggestDiscounts(books, 10);
@@ -70,7 +73,7 @@ export default async function HomePage() {
           <ul className="space-y-3 text-sm">
             <li className="flex gap-3">
               <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>{siteConfig.address}</span>
+              <span>{store.address}</span>
             </li>
             <li className="flex gap-3">
               <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
@@ -83,20 +86,26 @@ export default async function HomePage() {
             <li className="flex gap-3">
               <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
               <span>
-                {deliveryOptions.map((o) => `${o.label} ${formatPKR(o.charge)}`).join(" · ")}
-                <br />
-                <span className="text-muted-foreground">Cash on Delivery with TCS / Leopards / M&P</span>
+                {deliveryLine(store)}
+                {store.codAvailable && (
+                  <>
+                    <br />
+                    <span className="text-muted-foreground">
+                      Cash on Delivery with {store.delivery.find((o) => o.codAllowed)?.label}
+                    </span>
+                  </>
+                )}
               </span>
             </li>
           </ul>
           <div className="mt-5 flex flex-wrap gap-2">
             <Button asChild variant="outline">
-              <a href={`tel:+${siteConfig.phoneE164}`}>
-                <Phone aria-hidden /> {siteConfig.phoneDisplay}
+              <a href={telHref(store)}>
+                <Phone aria-hidden /> {store.phoneDisplay}
               </a>
             </Button>
             <Button asChild variant="outline">
-              <a href={whatsappLink(siteConfig.phoneE164)} target="_blank" rel="noopener noreferrer">
+              <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer">
                 <MessageCircle aria-hidden /> WhatsApp us
               </a>
             </Button>

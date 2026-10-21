@@ -3,7 +3,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, BookOpen, ShoppingBag, Trash2 } from "lucide-react";
-import { deliveryOptions } from "@/config/site";
 import { MAX_PER_LINE, purchasableLines } from "@/lib/cart/cart";
 import { hasBlockingLines } from "@/lib/cart/reconcile";
 import { cn } from "@/lib/utils";
@@ -17,13 +16,13 @@ import { CartNotices } from "./cart-notices";
 import { useCart } from "./cart-provider";
 import { useCartCheck } from "./use-cart-check";
 
-export function CartView() {
+/** cheapestDelivery: lowest switched-on delivery fee from settings (null = none). */
+export function CartView({ cheapestDelivery }: { cheapestDelivery: number | null }) {
   const { lines, ready, subtotal, setQuantity, remove } = useCart();
   const check = useCartCheck(ready);
   const blocking = hasBlockingLines(lines);
   const count = purchasableLines(lines).reduce((n, l) => n + l.quantity, 0);
   const canCheckout = !blocking && check.status === "ok";
-  const cheapestDelivery = Math.min(...deliveryOptions.map((o) => o.charge));
 
   if (!ready) {
     return (
@@ -158,7 +157,7 @@ export function CartView() {
           </div>
           <div className="flex justify-between text-muted-foreground">
             <dt>Delivery</dt>
-            <dd>from {formatPKR(cheapestDelivery)}, chosen at checkout</dd>
+            <dd>{cheapestDelivery === null ? "chosen at checkout" : `from ${formatPKR(cheapestDelivery)}, chosen at checkout`}</dd>
           </div>
         </dl>
         {canCheckout ? (

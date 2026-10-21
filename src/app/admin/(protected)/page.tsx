@@ -86,9 +86,32 @@ export default async function AdminOverviewPage() {
       </ul>
 
       <section className="rounded-2xl bg-surface p-5 ring-1 ring-border">
-        <h2 className="mb-2 font-semibold">Coming next</h2>
+        <h2 className="mb-2 font-semibold">Quick links</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Settings: delivery fees and store details (Phase 12)</li>
+          <li>
+            <Link href="/admin/orders" className="underline">
+              Orders
+            </Link>
+            : new orders and payments to check
+          </li>
+          <li>
+            <Link href="/admin/books" className="underline">
+              Books
+            </Link>
+            : prices, stock and new books
+          </li>
+          <li>
+            <Link href="/admin/posts/new" className="underline">
+              New post
+            </Link>
+            : publish a job vacancy or guide
+          </li>
+          <li>
+            <Link href="/admin/settings" className="underline">
+              Settings
+            </Link>
+            : delivery fees, Cash on Delivery, payment accounts and contact details
+          </li>
         </ul>
         {outOfStock === 0 && (
           <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">

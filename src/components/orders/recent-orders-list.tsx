@@ -3,7 +3,6 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ChevronRight, PackageSearch, Trash2 } from "lucide-react";
-import { siteConfig } from "@/config/site";
 import { whatsappLink } from "@/lib/format";
 import {
   forgetOrder,
@@ -51,7 +50,7 @@ function subscribe(listener: () => void) {
 const placedAt = new Intl.DateTimeFormat("en-PK", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Karachi" });
 
 /** Orders placed (or opened) on this device. Nothing here comes from our server. */
-export function RecentOrdersList() {
+export function RecentOrdersList({ phoneDisplay, phoneE164 }: { phoneDisplay: string; phoneE164: string }) {
   const orders = useSyncExternalStore(subscribe, snapshot, () => null);
 
   if (orders === null) return <Skeleton className="h-40 w-full rounded-3xl" />;
@@ -61,14 +60,14 @@ export function RecentOrdersList() {
       <EmptyState
         icon={PackageSearch}
         title="No orders on this device"
-        description={`Orders you place on this phone or computer appear here. Ordered on another device or lost your link? WhatsApp us on ${siteConfig.phoneDisplay} with your name and phone number.`}
+        description={`Orders you place on this phone or computer appear here. Ordered on another device or lost your link? WhatsApp us on ${phoneDisplay} with your name and phone number.`}
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Button asChild size="pill">
               <Link href="/books">Browse books</Link>
             </Button>
             <Button asChild variant="outline" size="pill">
-              <a href={whatsappLink(siteConfig.phoneE164, "Assalam-o-Alaikum, I need help finding my order.")} target="_blank" rel="noopener noreferrer">
+              <a href={whatsappLink(phoneE164, "Assalam-o-Alaikum, I need help finding my order.")} target="_blank" rel="noopener noreferrer">
                 WhatsApp us
               </a>
             </Button>

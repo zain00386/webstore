@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { siteConfig } from "@/config/site";
 import { InfoPage } from "@/components/layout/info-page";
+import { getStoreInfo } from "@/lib/db/store-info";
 
 export const metadata: Metadata = { title: "Terms & conditions" };
 
 // DRAFT for the owner to review. Not legal advice.
-export default function TermsPage() {
+export default async function TermsPage() {
+  const store = await getStoreInfo();
   return (
     <InfoPage title="Terms & conditions" draft>
       <h2>Orders</h2>
@@ -29,7 +31,7 @@ export default function TermsPage() {
       </p>
       <h2>Contact</h2>
       <p>
-        {siteConfig.fullName}, {siteConfig.address}. Phone / WhatsApp {siteConfig.phoneDisplay}.
+        {siteConfig.fullName}, {store.address}. Phone / WhatsApp {store.phoneDisplay}.
       </p>
     </InfoPage>
   );

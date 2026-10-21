@@ -1,14 +1,26 @@
 import { BadgeCheck, Banknote, MessageCircle, Truck } from "lucide-react";
+import { siteConfig } from "@/config/site";
+import { formatPKR } from "@/lib/format";
+import { getStoreInfo } from "@/lib/db/store-info";
 
 /** Only claims the shop has confirmed: no delivery-time promises, no "24/7". */
-const items = [
-  { icon: Truck, title: "Delivery all over Pakistan", text: "From Rs. 300 with Pakistan Post" },
-  { icon: Banknote, title: "Cash on Delivery", text: "With TCS / Leopards / M&P (Rs. 550)" },
-  { icon: BadgeCheck, title: "Official Dogar branch", text: "Genuine books, never photocopies" },
-  { icon: MessageCircle, title: "Help on WhatsApp", text: "0324-9574895, 10 AM - 9 PM (not Friday)" },
-];
-
-export function TrustRow() {
+export async function TrustRow() {
+  const store = await getStoreInfo();
+  const post = store.delivery.find((o) => o.id === "pakistan_post");
+  const courier = store.delivery.find((o) => o.id === "courier");
+  const cheapest = [...store.delivery].sort((a, b) => a.charge - b.charge)[0];
+  const items = [
+    {
+      icon: Truck,
+      title: "Delivery all over Pakistan",
+      text: cheapest ? `From ${formatPKR(cheapest.charge)} with ${cheapest.label}` : "Ask us on WhatsApp",
+    },
+    store.codAvailable && courier
+      ? { icon: Banknote, title: "Cash on Delivery", text: `With ${courier.label} (${formatPKR(courier.charge)})` }
+      : { icon: Banknote, title: "Easy payment", text: post ? "JazzCash, Easypaisa or bank" : "Pay in advance online" },
+    { icon: BadgeCheck, title: "Official Dogar branch", text: "Genuine books, never photocopies" },
+    { icon: MessageCircle, title: "Help on WhatsApp", text: `${store.phoneDisplay}, ${siteConfig.hours.open.replace(":00", "")} - ${siteConfig.hours.close.replace(":00", "")} (not ${siteConfig.hours.closedDay})` },
+  ];
   return (
     <section aria-label="Why order from us" className="rounded-3xl bg-surface p-4 ring-1 ring-border sm:p-5">
       <ul className="grid grid-cols-2 gap-4 lg:grid-cols-4">

@@ -6,7 +6,7 @@ import { RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { BookGallery } from "@/components/book/book-gallery";
 import { ShareButton } from "@/components/book/share-button";
 import { allExams } from "@/config/exams";
-import { deliveryOptions, siteConfig } from "@/config/site";
+import { getStoreInfo } from "@/lib/db/store-info";
 import { relatedBooks } from "@/lib/catalog/selectors";
 import { getCatalogState } from "@/lib/db/catalog";
 import { productJsonLd } from "@/lib/seo/product-json-ld";
@@ -88,6 +88,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
     );
   }
   if (!book) notFound();
+  const store = await getStoreInfo();
 
   const category = state.catalog.categories.find((c) => c.slug === book.categorySlug);
   const status = getStockStatus(book.stockQuantity, book.lowStockThreshold);
@@ -146,7 +147,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
           <Price price={book.price} compareAt={book.compareAtPrice} size="lg" />
 
           <div className="max-w-md">
-            <PurchasePanel item={toCartItem(book)} phoneE164={siteConfig.phoneE164} />
+            <PurchasePanel item={toCartItem(book)} phoneE164={store.phoneE164} />
           </div>
 
           <section aria-labelledby="delivery-returns" className="max-w-md rounded-2xl bg-surface p-4 text-sm ring-1 ring-border">
@@ -154,7 +155,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
               Delivery & returns
             </h2>
             <ul className="space-y-2.5">
-              {deliveryOptions.map((o) => (
+              {store.delivery.map((o) => (
                 <li key={o.id} className="flex gap-2.5">
                   <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
                   <span>
@@ -192,7 +193,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
             <Description blocks={book.description} />
           ) : (
             <p className="text-sm text-muted-foreground">
-              No description yet. WhatsApp us on {siteConfig.phoneDisplay} for details about this book.
+              No description yet. WhatsApp us on {store.phoneDisplay} for details about this book.
             </p>
           )}
         </section>

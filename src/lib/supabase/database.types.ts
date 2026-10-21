@@ -95,6 +95,7 @@ export type StoreSettingsRow = {
   bank_account_number: string | null;
   bank_iban: string | null;
   payment_instructions: string;
+  delivery_notes: string;
   updated_at: string;
 };
 
@@ -115,6 +116,7 @@ export type PublicSettings = Pick<
   | "jazzcash_enabled"
   | "easypaisa_enabled"
   | "bank_enabled"
+  | "delivery_notes"
 >;
 
 export type AdminUserRow = { user_id: string; note: string | null; created_at: string };

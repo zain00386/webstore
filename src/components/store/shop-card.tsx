@@ -3,8 +3,11 @@ import { siteConfig } from "@/config/site";
 import { whatsappLink } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { OpenStatus } from "./open-status";
+import { getStoreInfo } from "@/lib/db/store-info";
+import { telHref } from "@/lib/store-info";
 
-export function ShopCard() {
+export async function ShopCard() {
+  const store = await getStoreInfo();
   return (
     <section aria-labelledby="shop-card-title" className="not-prose rounded-3xl bg-surface p-6 ring-1 ring-border">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -16,11 +19,11 @@ export function ShopCard() {
       <ul className="space-y-3 text-sm">
         <li className="flex gap-3">
           <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-          {siteConfig.address}
+          {store.address}
         </li>
         <li className="flex gap-3">
           <Phone className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-          {siteConfig.phoneDisplay} (call or WhatsApp)
+          {store.phoneDisplay} (call or WhatsApp)
         </li>
         <li className="flex gap-3">
           <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
@@ -33,17 +36,17 @@ export function ShopCard() {
       </ul>
       <div className="mt-5 flex flex-wrap gap-2">
         <Button asChild>
-          <a href={whatsappLink(siteConfig.phoneE164)} target="_blank" rel="noopener noreferrer">
+          <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer">
             <MessageCircle aria-hidden /> WhatsApp us
           </a>
         </Button>
         <Button asChild variant="outline">
-          <a href={`tel:+${siteConfig.phoneE164}`}>
+          <a href={telHref(store)}>
             <Phone aria-hidden /> Call now
           </a>
         </Button>
         <Button asChild variant="outline">
-          <a href={siteConfig.mapsUrl} target="_blank" rel="noopener noreferrer">
+          <a href={store.mapsUrl} target="_blank" rel="noopener noreferrer">
             <Navigation aria-hidden /> Get directions
           </a>
         </Button>

@@ -1,14 +1,20 @@
 import type { Metadata } from "next";
-import { deliveryOptions, siteConfig } from "@/config/site";
+import { siteConfig } from "@/config/site";
+import { getStoreInfo } from "@/lib/db/store-info";
 import { formatPKR } from "@/lib/format";
 import { InfoPage } from "@/components/layout/info-page";
 
 export const metadata: Metadata = {
   title: "Shipping & delivery",
-  description: "Delivery all over Pakistan: Pakistan Post Rs. 300 (prepaid) or TCS / Leopards / M&P Rs. 550 with Cash on Delivery.",
+  description: "Delivery all over Pakistan by Pakistan Post or courier (TCS / Leopards / M&P), with Cash on Delivery on courier orders.",
 };
 
-export default function ShippingPage() {
+export default async function ShippingPage() {
+  const store = await getStoreInfo();
+  const prepaid = [store.payments.jazzcash && "JazzCash", store.payments.easypaisa && "Easypaisa", store.payments.bank_transfer && "bank transfer"]
+    .filter(Boolean)
+    .join(", ");
+  const courier = store.delivery.find((o) => o.id === "courier");
   return (
     <InfoPage title="Shipping & delivery" intro="We deliver books all over Pakistan from our Rawalpindi shop.">
       <div className="not-prose overflow-hidden rounded-2xl ring-1 ring-border">
@@ -22,41 +28,48 @@ export default function ShippingPage() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border bg-card">
-            {deliveryOptions.map((o) => (
+            {store.delivery.map((o) => (
               <tr key={o.id}>
                 <th scope="row" className="p-3 font-medium">{o.label}</th>
                 <td className="p-3">{formatPKR(o.charge)}</td>
                 <td className="p-3">
-                  {o.codAllowed ? "Cash on Delivery, JazzCash or Easypaisa" : "JazzCash or Easypaisa (prepaid only)"}
+                  {o.codAllowed ? `Cash on Delivery${prepaid ? `, or in advance (${prepaid})` : ""}` : `In advance${prepaid ? ` (${prepaid})` : ""}`}
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
+      {store.deliveryNotes && <p>{store.deliveryNotes}</p>}
 
-      <h2>Paying with JazzCash or Easypaisa</h2>
-      <ul>
-        <li>Place your order. You will see the exact amount and our account details.</li>
-        <li>Send the payment and write your order number in the payment note.</li>
-        <li>Send the payment screenshot on WhatsApp {siteConfig.phoneDisplay}.</li>
-        <li>We dispatch your books once we have confirmed the payment in our account.</li>
-      </ul>
+      {prepaid && (
+        <>
+          <h2>Paying in advance ({prepaid})</h2>
+          <ul>
+            <li>Place your order. You will see the exact amount and our account details.</li>
+            <li>Send the payment and write your order number in the payment note.</li>
+            <li>Send the payment screenshot on WhatsApp {store.phoneDisplay}.</li>
+            <li>We dispatch your books once we have confirmed the payment in our account.</li>
+          </ul>
+        </>
+      )}
 
-      <h2>Cash on Delivery</h2>
-      <p>
-        Available with TCS / Leopards / M&P only. Pay the courier in cash when your books arrive. We may call or WhatsApp you to
-        confirm your order before dispatch.
-      </p>
+      {store.codAvailable && courier && (
+        <>
+          <h2>Cash on Delivery</h2>
+          <p>
+            Available with {courier.label} only. Pay the courier in cash when your books arrive. We may call or WhatsApp you
+            to confirm your order before dispatch.
+          </p>
+        </>
+      )}
 
       <h2>Delivery time</h2>
-      <p>
-        Delivery time depends on your city and the courier. For an urgent order, WhatsApp us before ordering.
-      </p>
+      <p>Delivery time depends on your city and the courier. For an urgent order, WhatsApp us before ordering.</p>
 
       <h2>Collect from the shop</h2>
       <p>
-        You can also buy in person at {siteConfig.address}, {siteConfig.hours.summary}.
+        You can also buy in person at {store.address}, {siteConfig.hours.summary}.
       </p>
     </InfoPage>
   );

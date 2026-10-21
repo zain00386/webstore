@@ -1,13 +1,15 @@
 import Link from "next/link";
 import { MessageCircle, Phone, ShoppingBag } from "lucide-react";
-import { siteConfig } from "@/config/site";
 import { whatsappLink } from "@/lib/format";
 import { CartCount } from "@/components/cart/cart-count";
 import { Button } from "@/components/ui/button";
 import { Logo } from "./logo";
 import { SearchForm } from "./search-form";
+import { getStoreInfo } from "@/lib/db/store-info";
+import { telHref } from "@/lib/store-info";
 
-export function SiteHeader() {
+export async function SiteHeader() {
+  const store = await getStoreInfo();
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
       <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 lg:px-8">
@@ -15,21 +17,21 @@ export function SiteHeader() {
         <SearchForm className="hidden max-w-xl flex-1 md:block" id="header-search" />
         <div className="ml-auto flex items-center gap-2">
           <a
-            href={`tel:+${siteConfig.phoneE164}`}
+            href={telHref(store)}
             className="hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs hover:bg-muted lg:flex"
           >
             <Phone className="size-4" aria-hidden />
             <span className="flex flex-col leading-tight">
               <span className="text-muted-foreground">Helpline</span>
-              <span className="font-semibold">{siteConfig.phoneDisplay}</span>
+              <span className="font-semibold">{store.phoneDisplay}</span>
             </span>
           </a>
           <Button asChild variant="outline" size="icon" className="text-whatsapp">
             <a
-              href={whatsappLink(siteConfig.phoneE164)}
+              href={whatsappLink(store.phoneE164)}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`WhatsApp us on ${siteConfig.phoneDisplay} (opens in a new tab)`}
+              aria-label={`WhatsApp us on ${store.phoneDisplay} (opens in a new tab)`}
             >
               <MessageCircle aria-hidden />
             </a>

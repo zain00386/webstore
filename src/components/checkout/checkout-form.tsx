@@ -13,9 +13,8 @@ import {
   MessageCircle,
   ShoppingBag,
 } from "lucide-react";
-import { deliveryOptions, siteConfig } from "@/config/site";
+import type { DeliveryOption } from "@/lib/store-info";
 import {
-  deliveryCharge,
   firstAllowedPayment,
   isPaymentAllowed,
   type PaymentAvailability,
@@ -83,7 +82,15 @@ const paymentNotes: Record<PaymentMethod, string> = {
   cod: "Pay the full amount in cash when the courier delivers your books. No advance payment needed.",
 };
 
-export function CheckoutForm({ payments }: { payments: PaymentAvailability }) {
+type CheckoutFormProps = {
+  /** Switched-on delivery options with their fees, from Admin > Settings. */
+  delivery: DeliveryOption[];
+  payments: PaymentAvailability;
+  phoneE164: string;
+};
+
+export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }: CheckoutFormProps) {
+  const defaultDelivery = deliveryOptions.find((o) => o.id === "courier")?.id ?? deliveryOptions[0]?.id ?? "courier";
   const offered = paymentMethods.filter((m) => payments[m]);
   const { lines: allLines, ready, subtotal } = useCart();
   const check = useCartCheck(ready);
@@ -105,8 +112,8 @@ export function CheckoutForm({ payments }: { payments: PaymentAvailability }) {
       address: "",
       city: "",
       notes: "",
-      deliveryMethod: "courier",
-      paymentMethod: firstAllowedPayment("courier", payments) ?? "cod",
+      deliveryMethod: defaultDelivery,
+      paymentMethod: firstAllowedPayment(defaultDelivery, payments) ?? "cod",
     },
   });
   const { register, handleSubmit, control, setValue, setError, formState } =
@@ -114,7 +121,8 @@ export function CheckoutForm({ payments }: { payments: PaymentAvailability }) {
   const errors = formState.errors;
   const delivery = useWatch({ control, name: "deliveryMethod" });
   const payment = useWatch({ control, name: "paymentMethod" });
-  const shipping = delivery ? deliveryCharge(delivery) : 0;
+  // Shown to the customer; the database charges the fee from the same settings when the order is placed.
+  const shipping = deliveryOptions.find((o) => o.id === delivery)?.charge ?? 0;
 
   if (!ready) {
     return <Skeleton className="h-96 w-full rounded-2xl" />;
@@ -425,7 +433,7 @@ export function CheckoutForm({ payments }: { payments: PaymentAvailability }) {
           </Link>
           . Questions?{" "}
           <a
-            href={whatsappLink(siteConfig.phoneE164)}
+            href={whatsappLink(phoneE164)}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 underline"

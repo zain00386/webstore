@@ -1,11 +1,14 @@
 import Link from "next/link";
 import { Clock, MapPin, Phone } from "lucide-react";
 import { umbrellaExams } from "@/config/exams";
-import { deliveryOptions, footerLinks, siteConfig } from "@/config/site";
+import { footerLinks, siteConfig } from "@/config/site";
+import { getStoreInfo } from "@/lib/db/store-info";
+import { telHref } from "@/lib/store-info";
 import { formatPKR } from "@/lib/format";
 import { Logo } from "./logo";
 
-export function SiteFooter() {
+export async function SiteFooter() {
+  const store = await getStoreInfo();
   return (
     <footer className="mt-16 border-t border-border bg-surface">
       <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
@@ -21,14 +24,14 @@ export function SiteFooter() {
           <ul className="space-y-2.5 text-sm text-muted-foreground">
             <li className="flex gap-2">
               <MapPin className="mt-0.5 size-4 shrink-0" aria-hidden />
-              <a href={siteConfig.mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
-                {siteConfig.address}
+              <a href={store.mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+                {store.address}
               </a>
             </li>
             <li className="flex gap-2">
               <Phone className="mt-0.5 size-4 shrink-0" aria-hidden />
-              <a href={`tel:+${siteConfig.phoneE164}`} className="hover:text-foreground">
-                {siteConfig.phoneDisplay} (call / WhatsApp)
+              <a href={telHref(store)} className="hover:text-foreground">
+                {store.phoneDisplay} (call / WhatsApp)
               </a>
             </li>
             <li className="flex gap-2">
@@ -45,7 +48,7 @@ export function SiteFooter() {
         <div>
           <h2 className="mb-3 text-sm font-semibold">Delivery</h2>
           <ul className="space-y-2.5 text-sm text-muted-foreground">
-            {deliveryOptions.map((option) => (
+            {store.delivery.map((option) => (
               <li key={option.id}>
                 <span className="font-medium text-foreground">
                   {option.label}: {formatPKR(option.charge)}

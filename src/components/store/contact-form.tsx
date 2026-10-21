@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { MessageCircle } from "lucide-react";
-import { siteConfig } from "@/config/site";
 import { whatsappLink } from "@/lib/format";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
@@ -13,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
  * Contact form that opens WhatsApp with the message filled in.
  * Nothing is stored on our servers; the customer sends it themselves.
  */
-export function ContactForm() {
+export function ContactForm({ phoneE164 }: { phoneE164: string }) {
   const [errors, setErrors] = useState<{ name?: string; message?: string }>({});
 
   return (
@@ -32,7 +31,7 @@ export function ContactForm() {
         setErrors(next);
         if (next.name || next.message) return;
         const text = `Assalam-o-Alaikum, I am ${name}.\n\n${message.slice(0, 1500)}`;
-        window.open(whatsappLink(siteConfig.phoneE164, text), "_blank", "noopener,noreferrer");
+        window.open(whatsappLink(phoneE164, text), "_blank", "noopener,noreferrer");
       }}
     >
       <h2 className="text-lg font-semibold">Send us a message</h2>

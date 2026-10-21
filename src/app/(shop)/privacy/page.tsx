@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { siteConfig } from "@/config/site";
 import { InfoPage } from "@/components/layout/info-page";
+import { getStoreInfo } from "@/lib/db/store-info";
 
 export const metadata: Metadata = { title: "Privacy policy" };
 
 // DRAFT for the owner to review. Not legal advice.
-export default function PrivacyPage() {
+export default async function PrivacyPage() {
+  const store = await getStoreInfo();
   return (
     <InfoPage title="Privacy policy" draft>
       <h2>What we collect</h2>
@@ -27,7 +28,7 @@ export default function PrivacyPage() {
       <p>Your cart is saved in your own browser so it is still there when you come back.</p>
       <h2>Questions</h2>
       <p>
-        To see, correct or delete your details, contact us on {siteConfig.phoneDisplay}.
+        To see, correct or delete your details, contact us on {store.phoneDisplay}.
       </p>
     </InfoPage>
   );
