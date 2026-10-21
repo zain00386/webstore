@@ -27,14 +27,14 @@ export const siteConfig = {
    * Usual delivery time shown on the home page, e.g. "Usually 2-5 working days".
    * Leave empty until the shop confirms it: no delivery promise is shown then.
    */
-  deliveryTime: "",
+  deliveryTime: "Usually 2-5 working days",
   /**
    * Social pages. Leave empty until the real link is known: empty icons are hidden,
    * so the site never shows a dead link. WhatsApp Business uses phoneE164 above.
    */
   social: {
-    facebook: "",
-    instagram: "",
+    facebook: "https://www.facebook.com/share/1HuQS8nGCw",
+    instagram: "https://www.instagram.com/dogarspublisher/",
   },
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Iqbal+Road+Committee+Chowk+Rawalpindi",
