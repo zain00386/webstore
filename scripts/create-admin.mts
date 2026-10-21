@@ -65,7 +65,7 @@ console.log(`\n✓ ${email.data} is an admin.`);
 if (password) {
   console.log("\n  Your new admin password (shown only now — save it in a password manager):\n");
   console.log(`      ${password}\n`);
-  console.log("  You can change it later from the admin area or Supabase > Authentication.\n");
+  console.log("  Forgot it later? Run npm run db:reset-admin-password to get a new one.\n");
 } else {
   console.log("  This account already existed; its password was not changed.\n");
 }
