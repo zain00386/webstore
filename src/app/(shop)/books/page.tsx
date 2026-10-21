@@ -173,7 +173,10 @@ function CatalogView({ catalog, query }: { catalog: Catalog; query: CatalogQuery
           </div>
         </aside>
 
-        <section aria-label="Books">
+        <section aria-labelledby="results-title">
+          <h2 id="results-title" className="sr-only">
+            Books
+          </h2>
           {result.books.length > 0 ? (
             <>
               <BookGrid books={result.books} priorityCount={4} />

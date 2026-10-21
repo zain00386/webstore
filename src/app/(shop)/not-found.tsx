@@ -7,6 +7,7 @@ export default function NotFound() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 lg:px-8">
       <EmptyState
+        headingLevel={1}
         icon={SearchX}
         title="Page not found"
         description="The page you are looking for doesn't exist or has moved."

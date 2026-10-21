@@ -14,7 +14,7 @@ export async function AnnouncementBar() {
   ].filter(Boolean) as string[];
   const waysText = ways.length > 1 ? `${ways.slice(0, -1).join(", ")} or ${ways.at(-1)}` : (ways[0] ?? "");
   return (
-    <div className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground">
+    <aside aria-label="Delivery and payment" className="bg-primary px-4 py-2 text-center text-xs font-medium text-primary-foreground">
       <p className="flex items-center justify-center gap-2">
         <Truck className="size-3.5 shrink-0" aria-hidden />
         <span>
@@ -23,6 +23,6 @@ export async function AnnouncementBar() {
           {store.payments.cod && <span className="sm:hidden"> | COD available</span>}
         </span>
       </p>
-    </div>
+    </aside>
   );
 }

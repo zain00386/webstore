@@ -23,7 +23,9 @@
     "e2e:payments": "tsx scripts/e2e/payments.mts",
     "e2e:admin-orders": "tsx scripts/e2e/admin-orders.mts",
     "e2e:posts": "tsx scripts/e2e/admin-posts.mts",
-    "e2e:settings": "tsx scripts/e2e/settings.mts"
+    "e2e:settings": "tsx scripts/e2e/settings.mts",
+    "e2e:a11y": "tsx scripts/e2e/a11y.mts",
+    "e2e:keyboard": "tsx scripts/e2e/keyboard.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",
@@ -55,6 +57,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.1.2",
+    "axe-core": "^4.10.3",
     "eslint": "^9",
     "eslint-config-next": "16.4.2",
     "jsdom": "^30.1.3",

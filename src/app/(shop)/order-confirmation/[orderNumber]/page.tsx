@@ -41,6 +41,7 @@ async function OrderView({ orderNumber, token }: { orderNumber: string; token: s
   if (!order) {
     return (
       <EmptyState
+        headingLevel={1}
         icon={SearchX}
         title="Order not found"
         description="This link is incomplete or has expired. Use the full link from your order, or WhatsApp us on 0324-9574895 with your order number."

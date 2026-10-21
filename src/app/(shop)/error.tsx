@@ -18,7 +18,7 @@ export default function Error({ error, retry }: { error: unknown; retry: () => v
       <EmptyState
         icon={AlertTriangle}
         title="Something went wrong"
-        description="Please try again. If it keeps happening, WhatsApp us on 0324-9574895."
+        description="Please try again. If it keeps happening, WhatsApp us on 0324-9574895 or call the shop."
         action={
           <div className="flex flex-wrap justify-center gap-2">
             <Button size="pill" onClick={() => retry()}>

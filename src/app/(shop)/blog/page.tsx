@@ -77,6 +77,7 @@ async function PostList({ kind, page }: { kind?: "vacancy" | "blog"; page: numbe
           );
         })}
       </nav>
+      <h2 className="sr-only">{kind === "vacancy" ? "Vacancies" : kind === "blog" ? "Articles" : "Posts"}</h2>
       {posts.length > 0 ? (
         <>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

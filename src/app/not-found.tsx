@@ -12,6 +12,7 @@ export default function NotFound() {
         <Logo />
       </div>
       <EmptyState
+        headingLevel={1}
         icon={SearchX}
         title="Page not found"
         description="The page you are looking for doesn't exist or has moved."
