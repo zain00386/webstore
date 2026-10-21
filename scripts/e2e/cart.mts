@@ -5,7 +5,7 @@ import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
-import { launchBrowser, reporter, sleep } from "./lib";
+import { BASE, launchBrowser, reporter, sleep } from "./lib";
 import { clearOrderRateLimits } from "./lib";
 
 const env = loadScriptEnv();
@@ -38,7 +38,7 @@ try {
 
   // The book was inserted directly (not via admin, which refreshes the shop at once),
   // so wait for the shop's 1-minute catalogue cache to include it.
-  const listed = await b.waitFor(async () => (await (await fetch(`http://localhost:3000/books/${slug}`)).text()).includes("Add to cart"), 120000);
+  const listed = await b.waitFor(async () => (await (await fetch(`${BASE}/books/${slug}`)).text()).includes("Add to cart"), 120000);
   r.check("new book appears in the shop", listed);
 
   // 1. Real "Add to cart" from the book page stores the book id

@@ -10,7 +10,7 @@ import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
 
-const BASE = "http://localhost:3000";
+const BASE = process.env.E2E_BASE ?? "http://localhost:3000";
 const env = loadScriptEnv();
 const svc = createClient<Database>(env.url, env.serviceKey, { auth: { persistSession: false } });
 const tag = randomBytes(4).toString("hex");

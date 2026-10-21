@@ -43,3 +43,6 @@ next-env.d.ts
 
 # accessibility audit output
 e2e-a11y-report.json
+
+.vercel
+.env*

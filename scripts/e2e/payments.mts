@@ -5,7 +5,7 @@ import { randomBytes, randomInt } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "../../src/lib/supabase/database.types";
 import { loadScriptEnv } from "../lib/script-env";
-import { launchBrowser, reporter, signIn, sleep, type Browser } from "./lib";
+import { BASE, launchBrowser, reporter, signIn, sleep, type Browser } from "./lib";
 import { clearOrderRateLimits } from "./lib";
 
 const env = loadScriptEnv();
@@ -72,8 +72,8 @@ try {
   r.check("numbers are tidied (0300-1112223, IBAN upper-case without spaces)", saved.jazzcash_number === "0300-1112223" && saved.bank_iban === "PK36SCBL0000001123456702", JSON.stringify(saved));
 
   // 3. Public pages never show the account numbers
-  const home = await (await fetch("http://localhost:3000/")).text();
-  const checkoutHtml = await (await fetch("http://localhost:3000/checkout")).text();
+  const home = await (await fetch(`${BASE}/`)).text();
+  const checkoutHtml = await (await fetch(`${BASE}/checkout`)).text();
   r.check("account numbers are not on public pages", ![home, checkoutHtml].some((h) => h.includes("1123456702") || h.includes("0123 4567 8901") || h.includes("0300-1112223")));
 
   // 4. Checkout offers bank transfer; order with Pakistan Post
