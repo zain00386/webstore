@@ -1,36 +1,32 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Dogar's Unique Books Rawalpindi: online shop
 
-## Getting Started
+Online bookshop for the official Rawalpindi branch of Dogar Publishers (Iqbal Road, Committee Chowk).
+Built with Next.js 16, Supabase (database, admin login, images) and Tailwind CSS.
 
-First, run the development server:
+## Everyday commands (VS Code terminal)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+| Command | What it does |
+| --- | --- |
+| `npm.cmd run dev` | Run the shop on your computer at http://localhost:3000 |
+| `npm.cmd run db:check` | Check the database is set up correctly |
+| `npm.cmd run db:reset-admin-password` | Give an admin a new password |
+| `npm.cmd run db:change-admin-email` | Change an admin's email |
+| `npm.cmd run db:create-admin` | Add another admin |
+| `npm.cmd test` | Run the automatic tests |
+| `npm.cmd run e2e:all` | Run every browser test (shop must be running) |
+| `npm.cmd run build` | Build the live version (checks everything compiles) |
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Guides
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Guide | For |
+| --- | --- |
+| [docs/deployment.md](docs/deployment.md) | Putting the shop online with Vercel, domain, HTTPS |
+| [docs/acceptance-test.md](docs/acceptance-test.md) | Checking every feature yourself, step by step |
+| [docs/go-live-checklist.md](docs/go-live-checklist.md) | Accounts, settings, security summary, backups |
+| [docs/feature-status.md](docs/feature-status.md) | What is complete, partial and not built |
+| [docs/database-setup.md](docs/database-setup.md) | Supabase setup and later database updates |
+| [docs/admin-access.md](docs/admin-access.md) | Admin accounts and access |
+| [docs/notifications.md](docs/notifications.md) | Connecting SMS / email later |
+| [docs/known-limitations.md](docs/known-limitations.md) | Known limitations |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Secrets (Supabase keys) live only in `.env.local` (never committed) and in Vercel's settings.

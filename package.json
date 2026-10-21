@@ -26,7 +26,9 @@
     "e2e:settings": "tsx scripts/e2e/settings.mts",
     "e2e:a11y": "tsx scripts/e2e/a11y.mts",
     "e2e:keyboard": "tsx scripts/e2e/keyboard.mts",
-    "db:reset-admin-password": "tsx scripts/reset-admin-password.mts"
+    "db:reset-admin-password": "tsx scripts/reset-admin-password.mts",
+    "e2e:last-copy": "tsx scripts/e2e/last-copy.mts",
+    "e2e:all": "tsx scripts/e2e/run-all.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

@@ -54,6 +54,9 @@ async function audit(b: Browser, path: string, width: number, prepare?: () => Pr
   if (custom.noAlt.length) findings.push({ page: path, width, rule: "img-no-alt-attr", impact: "serious", help: "Images without alt", targets: custom.noAlt });
   if (custom.noName.length) findings.push({ page: path, width, rule: "control-no-name", impact: "serious", help: "Links/buttons without a name", targets: custom.noName });
 
+  // Measure the finished page: stop fades/animations so colours aren't read mid-transition.
+  await b.js(`(() => { const st = document.createElement('style'); st.textContent = '*,*::before,*::after{transition:none!important;animation:none!important}'; document.head.appendChild(st); })()`);
+  await sleep(50);
   await b.js(`(() => { if (!window.axe) { const s = document.createElement('script'); s.textContent = ${JSON.stringify(axeSource)}; document.head.appendChild(s); } })()`);
   const result = await b.js<{ id: string; impact: string; help: string; nodes: { target: string[] }[] }[]>(
     `axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa','best-practice'] }, resultTypes: ['violations'] }).then(r => r.violations.map(v => ({ id: v.id, impact: v.impact, help: v.help, nodes: v.nodes.map(n => ({ target: n.target, why: n.failureSummary })) })))`,

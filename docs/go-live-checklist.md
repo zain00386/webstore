@@ -1,7 +1,7 @@
 # Go-live checklist
 
-Work through this before the shop takes real orders. Phase 15 adds the step-by-step
-Vercel guide and a test-order script. This list is a careful review, **not** a certified
+Work through this before the shop takes real orders. Step-by-step guides: `docs/deployment.md`
+(Vercel) and `docs/acceptance-test.md` (test script). This list is a careful review, **not** a certified
 security audit or legal compliance check.
 
 ## 1. Accounts you need
@@ -19,7 +19,7 @@ security audit or legal compliance check.
 
 ## 2. Database (Supabase)
 
-- [ ] Run every file in `supabase/migrations/` that isn't installed yet (today: **0005 to 0009**), in order.
+- [x] Run every file in `supabase/migrations/` that isn't installed yet (all installed as of 21 Oct 2026; future updates: paste only the new file).
 - [ ] `npm run db:check` shows only ✓ lines.
 - [ ] Authentication → Sign In / Providers: **"Allow new users to sign up" is OFF**.
 - [ ] Authentication → URL Configuration: Site URL = your live address.

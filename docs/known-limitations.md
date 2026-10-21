@@ -1,13 +1,13 @@
-# Known limitations (after Phase 13)
+# Known limitations (after Phase 15)
 
 Things that are deliberately not done yet, or that need a decision from the shop.
 
 ## Needs the owner
 
 - **Policy wording** (Returns, Privacy, Terms) shows a "Draft policy" notice until you approve the text.
-- **Database updates 0005–0009** must be pasted into Supabase (see `docs/database-setup.md`).
-  Until then, order pages, Admin → Orders, Settings and publishing posts don't work.
-- **Real stock counts**: imported books start at stock 10.
+- **Payment accounts**: JazzCash / Easypaisa are switched on without numbers. Add them in Admin → Settings,
+  or switch them off.
+- **Stock counts**: every book was set to 100 on 21 Oct 2026; change individual books in Admin → Books.
 
 ## By design for version 1
 
@@ -15,8 +15,8 @@ Things that are deliberately not done yet, or that need a decision from the shop
 - **No automatic SMS / email / WhatsApp messages.** See `docs/notifications.md` for how to connect one.
 - **No card payment gateway.** JazzCash, Easypaisa and bank transfers are checked by hand; Cash on Delivery via courier.
 - **Shop name and opening hours** live in `src/config/site.ts` (the logo and "open now" badge use them).
-- **Rate limits** are shared through the database from migration 0009; until it is installed each server
-  counts on its own.
+- **Admin password changes** are done from the terminal (`npm run db:reset-admin-password`), not the admin area.
+- **After an admin order action** the page can briefly show a loading placeholder while it refreshes (cosmetic).
 
 ## Accessibility checks
 

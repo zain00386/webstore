@@ -144,8 +144,17 @@ try {
 
   // 10. Delete the book (type DELETE)
   await b.go(editPath);
-  await b.clickText("button", "Delete permanently…");
-  await b.waitFor(() => b.js<boolean>(`!!document.querySelector('#confirm-delete')`));
+  // One click, then wait; click once more only if nothing opened (a second click
+  // while the dialog is still opening would close it again).
+  const dialogOpen = () => b.js<boolean>(`!!document.querySelector('#confirm-delete')`);
+  // Let the page finish loading its interactive parts before clicking.
+  await b.waitFor(() => b.js<boolean>(`document.readyState === "complete" && !document.querySelector('[role="status"]')`), 15000);
+  await sleep(1500);
+  await b.clickText("button", "Delete permanently");
+  if (!(await b.waitFor(dialogOpen, 8000))) {
+    await b.clickText("button", "Delete permanently");
+    await b.waitFor(dialogOpen, 8000);
+  }
   r.check("delete button stays disabled until DELETE is typed", await b.js<boolean>(`document.querySelector('[role="dialog"] button[type="submit"]').disabled`));
   await b.fill("#confirm-delete", "DELETE");
   await b.click('[role="dialog"] button[type="submit"]');
