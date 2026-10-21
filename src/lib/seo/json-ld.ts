@@ -1,6 +1,6 @@
 import { siteConfig } from "@/config/site";
 import { siteUrl } from "@/lib/site-url";
-import type { StoreInfo } from "@/lib/store-info";
+import { internationalPhone, type StoreInfo } from "@/lib/store-info";
 import type { Post } from "@/types/post";
 
 /**
@@ -17,7 +17,7 @@ export function storeJsonLd(store: StoreInfo) {
     url: base,
     logo: `${base}/brand/logo.png`,
     image: `${base}/brand/logo.png`,
-    telephone: `+${store.phoneE164}`,
+    telephone: internationalPhone(store.phones[0] ?? store.phoneDisplay),
     address: {
       "@type": "PostalAddress",
       streetAddress: store.address.replace(/,?\s*Rawalpindi$/i, ""),

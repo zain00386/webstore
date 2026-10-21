@@ -1,4 +1,5 @@
-import { Clock, MapPin, MessageCircle, Navigation, Phone } from "lucide-react";
+import { Clock, MapPin, Navigation, Phone } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { siteConfig } from "@/config/site";
 import { whatsappLink } from "@/lib/format";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,11 @@ export async function ShopCard() {
         </li>
         <li className="flex gap-3">
           <Phone className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-          {store.phoneDisplay} (call or WhatsApp)
+          Helpline: {store.phones.join(", ")}
+        </li>
+        <li className="flex gap-3">
+          <WhatsAppIcon className="mt-0.5 size-4 shrink-0 text-whatsapp" />
+          WhatsApp: {store.whatsappDisplay}
         </li>
         <li className="flex gap-3">
           <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
@@ -35,16 +40,18 @@ export async function ShopCard() {
         </li>
       </ul>
       <div className="mt-5 flex flex-wrap gap-2">
-        <Button asChild>
+        <Button asChild className="bg-whatsapp text-white hover:bg-whatsapp/90">
           <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer">
-            <MessageCircle aria-hidden /> WhatsApp us
+            <WhatsAppIcon /> Chat on WhatsApp
           </a>
         </Button>
-        <Button asChild variant="outline">
-          <a href={telHref(store)}>
-            <Phone aria-hidden /> Call now
-          </a>
-        </Button>
+        {store.phones.map((p) => (
+          <Button key={p} asChild variant="outline">
+            <a href={telHref(p)}>
+              <Phone aria-hidden /> Call {p}
+            </a>
+          </Button>
+        ))}
         <Button asChild variant="outline">
           <a href={store.mapsUrl} target="_blank" rel="noopener noreferrer">
             <Navigation aria-hidden /> Get directions

@@ -49,7 +49,7 @@ export default async function ShippingPage() {
           <ul>
             <li>Place your order. You will see the exact amount and our account details.</li>
             <li>Send the payment and write your order number in the payment note.</li>
-            <li>Send the payment screenshot on WhatsApp {store.phoneDisplay}.</li>
+            <li>Send the payment screenshot on WhatsApp {store.whatsappDisplay}.</li>
             <li>We dispatch your books once we have confirmed the payment in our account.</li>
           </ul>
         </>

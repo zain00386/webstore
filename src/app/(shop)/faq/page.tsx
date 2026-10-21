@@ -27,7 +27,7 @@ function faqsFor(store: StoreInfo) {
     },
     {
       q: "How do I pay in advance?",
-      a: `After placing your order, send the amount shown with your order number in the payment note, then send the screenshot on WhatsApp ${store.phoneDisplay}. We dispatch after confirming the payment.`,
+      a: `After placing your order, send the amount shown with your order number in the payment note, then send the screenshot on WhatsApp ${store.whatsappDisplay}. We dispatch after confirming the payment.`,
     },
     {
       q: "Are your books original?",

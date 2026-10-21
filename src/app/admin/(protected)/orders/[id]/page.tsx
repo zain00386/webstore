@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, MessageCircle, Phone } from "lucide-react";
+import { ArrowLeft, Phone } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { z } from "zod";
 import { requireAdmin } from "@/lib/auth/admin";
 import { paymentLabels } from "@/lib/checkout/rules";
@@ -100,7 +101,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <MessageCircle aria-hidden /> WhatsApp
+                <WhatsAppIcon /> WhatsApp
               </a>
             </Button>
           </div>

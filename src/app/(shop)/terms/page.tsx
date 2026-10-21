@@ -31,7 +31,7 @@ export default async function TermsPage() {
       </p>
       <h2>Contact</h2>
       <p>
-        {siteConfig.fullName}, {store.address}. Phone / WhatsApp {store.phoneDisplay}.
+        {siteConfig.fullName}, {store.address}. Phone {store.phones.join(", ")}. WhatsApp {store.whatsappDisplay}.
       </p>
     </InfoPage>
   );

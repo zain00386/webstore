@@ -38,8 +38,8 @@ export function StoreSettingsForm({ initial }: { initial: StoreSettingsInput }) 
           <MapPin className="size-4" aria-hidden /> Store contact
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
-          <FormField label="Phone (shown on the site)" required error={err.phone}>
-            <Input name="phone" defaultValue={v.phone} inputMode="tel" maxLength={20} />
+          <FormField label="Helpline (for calls)" required hint="One or two numbers, separated by a comma." error={err.phone}>
+            <Input name="phone" defaultValue={v.phone} inputMode="tel" maxLength={40} />
           </FormField>
           <FormField label="WhatsApp number" required hint="All WhatsApp buttons open a chat with this number." error={err.whatsapp}>
             <Input name="whatsapp" defaultValue={v.whatsapp} inputMode="tel" maxLength={16} />

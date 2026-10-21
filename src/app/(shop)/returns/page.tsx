@@ -12,7 +12,7 @@ export default async function ReturnsPage() {
       <h2>Wrong or damaged books</h2>
       <p>
         If you receive the wrong book, or a book that is damaged or has missing or misprinted pages, contact us within 5
-        business days of delivery on WhatsApp {store.phoneDisplay} with your order number and photos. We will replace
+        business days of delivery on WhatsApp {store.whatsappDisplay} with your order number and photos. We will replace
         it at no extra cost.
       </p>
       <h2>Exchanges</h2>

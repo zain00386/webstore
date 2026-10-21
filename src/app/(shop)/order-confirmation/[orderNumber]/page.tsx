@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { connection } from "next/server";
-import { Check, CheckCircle2, Clock, ListOrdered, MapPin, MessageCircle, Package, SearchX, Wallet, XCircle } from "lucide-react";
+import { Check, CheckCircle2, Clock, ListOrdered, MapPin, Package, SearchX, Wallet, XCircle } from "lucide-react";
 import { deliveryOptions } from "@/config/site";
 import { paymentLabels } from "@/lib/checkout/rules";
 import { fetchOrderForCustomer, fetchPaymentDetails, type CustomerOrder, type PaymentDetails } from "@/lib/db/customer-orders";
@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CopyButton } from "@/components/orders/copy-button";
 import { RememberOrder } from "@/components/orders/remember-order";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -237,7 +238,7 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
       <div className="flex flex-wrap justify-center gap-2">
         <Button asChild size="pill" className="bg-whatsapp hover:bg-whatsapp/90">
           <a href={whatsappLink(payment.whatsapp, whatsappText)} target="_blank" rel="noopener noreferrer">
-            <MessageCircle aria-hidden /> WhatsApp us about this order
+            <WhatsAppIcon /> WhatsApp us about this order
           </a>
         </Button>
         <Button asChild variant="outline" size="pill">

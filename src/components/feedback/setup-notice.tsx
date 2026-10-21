@@ -15,7 +15,7 @@ export function SetupNotice({ problems }: { problems: ConfigProblem[] }) {
       </div>
       <p>
         The shop&apos;s database settings are missing, so books can&apos;t be shown. Customers can still order by
-        WhatsApp on {siteConfig.phoneDisplay}.
+        WhatsApp on {siteConfig.whatsappDisplay}.
       </p>
       <p className="mt-3 font-medium">For the shop owner: fix these settings, then restart the site.</p>
       <ul className="mt-1 list-disc pl-5">

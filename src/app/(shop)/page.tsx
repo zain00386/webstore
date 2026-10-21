@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Clock, MapPin, Phone, Truck } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { categories } from "@/config/categories";
 import { examShortcuts, siteConfig } from "@/config/site";
 import { getStoreInfo } from "@/lib/db/store-info";
@@ -15,6 +16,8 @@ import { SetupNotice } from "@/components/feedback/setup-notice";
 import { PostCard } from "@/components/blog/post-card";
 import { BookGrid, BookRow } from "@/components/book/shop-book-card";
 import { TrustRow } from "@/components/store/trust-row";
+import { HeroSlider } from "@/components/home/hero-slider";
+import { buildHeroSlides } from "@/lib/home/hero-slides";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OpenStatus } from "@/components/store/open-status";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +41,9 @@ export default async function HomePage() {
   const onSale = biggestDiscounts(books, 10);
   const counts = categoryCounts(books);
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
-  const latestPosts = (await getPublishedPosts()).slice(0, 3);
+  const allPosts = await getPublishedPosts();
+  const latestPosts = allPosts.slice(0, 3);
+  const slides = buildHeroSlides(allPosts, books);
   const exCounts = examCounts(books);
   // Rows of books per popular exam (only exams that have books).
   const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
@@ -49,73 +54,29 @@ export default async function HomePage() {
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(storeJsonLd(store))} />
-      {/* Hero */}
-      <section aria-labelledby="hero-title" className="grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
-        <div className="space-y-5">
+      {/* Banner: latest vacancies with their books, new arrivals, popular exams */}
+      <section aria-labelledby="hero-title" className="space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 id="hero-title" className="text-lg font-semibold tracking-tight sm:text-xl">
+            Every book, every exam.{" "}
+            <span className="font-normal text-muted-foreground">From our Rawalpindi shop to your door.</span>
+          </h1>
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="success">
               <BadgeCheck aria-hidden /> Official Dogar Publishers branch
             </Badge>
             <OpenStatus />
           </div>
-          <h1 id="hero-title" className="text-4xl leading-tight font-light tracking-tight sm:text-5xl">
-            Prepare smarter.
-            <br />
-            <span className="font-semibold">Every book, every exam.</span>
-          </h1>
-          <p className="max-w-lg text-muted-foreground">
-            Books from all publishers, from our Rawalpindi shop to your door, anywhere in Pakistan.
-          </p>
+        </div>
+        {slides.length > 0 ? (
+          <HeroSlider slides={slides} phones={store.phones} whatsappDisplay={store.whatsappDisplay} phoneE164={store.phoneE164} />
+        ) : (
           <Button asChild size="pill">
             <Link href="/books">
-              Browse {books.length > 0 ? `${books.length} books` : "books"} <ArrowRight data-icon="inline-end" aria-hidden />
+              Browse books <ArrowRight data-icon="inline-end" aria-hidden />
             </Link>
           </Button>
-        </div>
-
-        <div className="rounded-3xl bg-surface p-6 ring-1 ring-border">
-          <h2 className="mb-4 text-sm font-semibold">Visit or order</h2>
-          <ul className="space-y-3 text-sm">
-            <li className="flex gap-3">
-              <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>{store.address}</span>
-            </li>
-            <li className="flex gap-3">
-              <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>
-                Shop: {siteConfig.hours.summary}
-                <br />
-                <span className="text-muted-foreground">Online orders accepted every day</span>
-              </span>
-            </li>
-            <li className="flex gap-3">
-              <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-              <span>
-                {deliveryLine(store)}
-                {store.codAvailable && (
-                  <>
-                    <br />
-                    <span className="text-muted-foreground">
-                      Cash on Delivery with {store.delivery.find((o) => o.codAllowed)?.label}
-                    </span>
-                  </>
-                )}
-              </span>
-            </li>
-          </ul>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <Button asChild variant="outline">
-              <a href={telHref(store)}>
-                <Phone aria-hidden /> {store.phoneDisplay}
-              </a>
-            </Button>
-            <Button asChild variant="outline">
-              <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer">
-                <MessageCircle aria-hidden /> WhatsApp us
-              </a>
-            </Button>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* Exam shortcuts */}
@@ -145,7 +106,6 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      <TrustRow />
 
       {state.status === "not-configured" && <SetupNotice problems={state.problems} />}
 
@@ -220,6 +180,65 @@ export default async function HomePage() {
           <BookGrid books={onSale} />
         </section>
       )}
+      {/* Visit or order + why order from us (end of the page) */}
+      <TrustRow />
+      <section aria-labelledby="visit-title" className="rounded-3xl bg-surface p-6 ring-1 ring-border sm:p-8">
+        <h2 id="visit-title" className="mb-5 text-xl font-semibold">
+          Visit or order
+        </h2>
+        <ul className="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
+          <li className="flex gap-3">
+            <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+            <a href={store.mapsUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
+              {store.address}
+            </a>
+          </li>
+          <li className="flex gap-3">
+            <Clock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+            <span>
+              Shop: {siteConfig.hours.summary}
+              <br />
+              <span className="text-muted-foreground">Online orders accepted every day</span>
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <Truck className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+            <span>
+              {deliveryLine(store)}
+              {store.codAvailable && (
+                <>
+                  <br />
+                  <span className="text-muted-foreground">
+                    Cash on Delivery with {store.delivery.find((o) => o.codAllowed)?.label}
+                  </span>
+                </>
+              )}
+            </span>
+          </li>
+          <li className="flex gap-3">
+            <Phone className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+            <span>
+              Helpline: {store.phones.join(", ")}
+              <br />
+              <span className="text-muted-foreground">WhatsApp: {store.whatsappDisplay}</span>
+            </span>
+          </li>
+        </ul>
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Button asChild className="bg-whatsapp text-white hover:bg-whatsapp/90">
+            <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer">
+              <WhatsAppIcon /> Chat on WhatsApp
+            </a>
+          </Button>
+          {store.phones.map((p) => (
+            <Button key={p} asChild variant="outline">
+              <a href={telHref(p)}>
+                <Phone aria-hidden /> Call {p}
+              </a>
+            </Button>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

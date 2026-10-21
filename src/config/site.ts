@@ -11,14 +11,30 @@ export const siteConfig = {
   description:
     "Official Rawalpindi branch of Dogar Publishers. Books from all publishers for CSS, PMS, FPSC, PPSC, NTS, MDCAT, ECAT, ISSB and job tests, delivered all over Pakistan.",
   address: "Iqbal Road, Committee Chowk, Rawalpindi",
-  phoneDisplay: "0324-9574895",
-  /** International format without "+" for tel: and wa.me links. */
+  /** Helpline numbers for calls (comma-separated). */
+  phoneDisplay: "051-5533165, 051-5533169",
+  /** WhatsApp number as shown to customers. */
+  whatsappDisplay: "0324-9574895",
+  /** WhatsApp number in international format without "+", for wa.me links. */
   phoneE164: "923249574895",
   hours: {
     open: "10:00 AM",
     close: "9:00 PM",
     closedDay: "Friday",
     summary: "10:00 AM - 9:00 PM, closed Friday",
+  },
+  /**
+   * Usual delivery time shown on the home page, e.g. "Usually 2-5 working days".
+   * Leave empty until the shop confirms it: no delivery promise is shown then.
+   */
+  deliveryTime: "",
+  /**
+   * Social pages. Leave empty until the real link is known: empty icons are hidden,
+   * so the site never shows a dead link. WhatsApp Business uses phoneE164 above.
+   */
+  social: {
+    facebook: "",
+    instagram: "",
   },
   mapsUrl:
     "https://www.google.com/maps/search/?api=1&query=Iqbal+Road+Committee+Chowk+Rawalpindi",

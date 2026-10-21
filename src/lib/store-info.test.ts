@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PublicSettings } from "@/lib/supabase/database.types";
-import { buildStoreInfo, cheapestDelivery } from "./store-info";
+import { buildStoreInfo, cheapestDelivery, internationalPhone, splitPhones, telHref } from "./store-info";
 
 const settings: PublicSettings = {
   store_name: "Dogar's Unique Books Rawalpindi",
@@ -46,5 +46,15 @@ describe("store info from settings", () => {
 
   it("falls back to the built-in details without a database", () => {
     expect(buildStoreInfo(null).delivery).toHaveLength(2);
+  });
+
+  it("splits helpline numbers and keeps WhatsApp separate", () => {
+    const info = buildStoreInfo({ ...settings, phone: "051-5533165, 051-5533169" });
+    expect(info.phones).toEqual(["051-5533165", "051-5533169"]);
+    expect(info.whatsappDisplay).toBe("0324-9574895");
+    expect(splitPhones("051-5533165")).toEqual(["051-5533165"]);
+    expect(telHref("051-5533165")).toBe("tel:0515533165");
+    expect(internationalPhone("051-5533165")).toBe("+92-51-5533165");
+    expect(internationalPhone("0324-9574895")).toBe("+92-324-9574895");
   });
 });

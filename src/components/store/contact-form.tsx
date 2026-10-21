@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { whatsappLink } from "@/lib/format";
 import { FormField } from "@/components/forms/form-field";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,7 @@ export function ContactForm({ phoneE164 }: { phoneE164: string }) {
         <Textarea name="message" rows={4} maxLength={1500} />
       </FormField>
       <Button type="submit" size="pill" className="w-full sm:w-auto">
-        <MessageCircle aria-hidden /> Send on WhatsApp
+        <WhatsAppIcon /> Send on WhatsApp
       </Button>
     </form>
   );

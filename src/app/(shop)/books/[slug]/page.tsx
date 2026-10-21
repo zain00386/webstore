@@ -193,7 +193,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
             <Description blocks={book.description} />
           ) : (
             <p className="text-sm text-muted-foreground">
-              No description yet. WhatsApp us on {store.phoneDisplay} for details about this book.
+              No description yet. WhatsApp us on {store.whatsappDisplay} for details about this book.
             </p>
           )}
         </section>

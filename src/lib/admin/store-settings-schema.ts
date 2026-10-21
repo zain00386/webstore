@@ -25,9 +25,17 @@ export const storeSettingsSchema = z
     updatedAt: z.string().min(1),
     phone: z
       .string()
-      .trim()
-      .transform((v) => (/^(\+?92|0)3\d{2}[\s-]?\d{7}$/.test(v.replace(/\s+/g, "")) ? normalizeWalletNumber(v) : v.replace(/\s+/g, " ")))
-      .pipe(z.string().regex(/^[0-9+][0-9 -]{6,18}[0-9]$/, "Enter a phone number, e.g. 0324-9574895")),
+      .transform((v) =>
+        v
+          .split(/[,;/]/)
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map((p) => (/^(\+?92|0)3\d{2}[\s-]?\d{7}$/.test(p.replace(/\s+/g, "")) ? normalizeWalletNumber(p) : p.replace(/\s+/g, " "))),
+      )
+      .refine((list) => list.length >= 1 && list.length <= 2, "Enter one or two numbers, separated by a comma")
+      .refine((list) => list.every((p) => /^[0-9+][0-9 -]{6,18}[0-9]$/.test(p)), "Use numbers like 051-5533165, 051-5533169")
+      .transform((list) => list.join(", "))
+      .refine((v) => v.length <= 30, "Too long"),
     whatsapp: z
       .string()
       .transform((v) => toWhatsAppE164(v) ?? "")

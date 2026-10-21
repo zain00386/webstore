@@ -19,8 +19,14 @@ export type DeliveryOption = {
 };
 
 export type StoreInfo = {
+  /** Helpline numbers as typed in settings, e.g. "051-5533165, 051-5533169". */
   phoneDisplay: string;
+  /** The same numbers one by one, for separate call links. */
+  phones: string[];
+  /** WhatsApp number in international form without "+" (wa.me links). */
   phoneE164: string;
+  /** WhatsApp number as customers read it, e.g. "0324-9574895". */
+  whatsappDisplay: string;
   address: string;
   mapsUrl: string;
   /** Only the options switched on in settings. */
@@ -36,7 +42,9 @@ export function buildStoreInfo(s: PublicSettings | null): StoreInfo {
   if (!s) {
     return {
       phoneDisplay: siteConfig.phoneDisplay,
+      phones: splitPhones(siteConfig.phoneDisplay),
       phoneE164: siteConfig.phoneE164,
+      whatsappDisplay: siteConfig.whatsappDisplay,
       address: siteConfig.address,
       mapsUrl: siteConfig.mapsUrl,
       delivery: defaultDelivery.map((o) => ({ id: o.id, label: o.label, note: o.note, charge: o.charge, codAllowed: o.codAllowed })),
@@ -62,7 +70,9 @@ export function buildStoreInfo(s: PublicSettings | null): StoreInfo {
   }
   return {
     phoneDisplay: s.phone,
+    phones: splitPhones(s.phone),
     phoneE164: s.whatsapp_e164,
+    whatsappDisplay: whatsappDisplay(s.whatsapp_e164),
     address: s.address,
     mapsUrl: s.address === siteConfig.address ? siteConfig.mapsUrl : mapsFor(s.address),
     delivery,
@@ -86,7 +96,27 @@ export function deliveryLine(info: StoreInfo): string {
   return info.delivery.map((o) => `${o.label} ${formatPKR(o.charge)}`).join(" · ");
 }
 
-/** tel: link for the shop's phone number as typed in settings. */
-export function telHref(info: Pick<StoreInfo, "phoneDisplay">): string {
-  return `tel:${info.phoneDisplay.replace(/[^\d+]/g, "")}`;
+/** "051-5533165, 051-5533169" -> ["051-5533165", "051-5533169"]. */
+export function splitPhones(value: string): string[] {
+  return value
+    .split(/[,;/]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+/** "923249574895" -> "0324-9574895". */
+export function whatsappDisplay(e164: string): string {
+  return /^92\d{10}$/.test(e164) ? `0${e164.slice(2, 5)}-${e164.slice(5)}` : e164;
+}
+
+/** tel: link for ONE phone number. */
+export function telHref(phone: string): string {
+  return `tel:${phone.replace(/[^\d+]/g, "")}`;
+}
+
+/** "051-5533165" -> "+92-51-5533165" (for Google's store data). */
+export function internationalPhone(phone: string): string {
+  const digits = phone.replace(/[^\d]/g, "");
+  if (digits.startsWith("92")) return `+${digits}`;
+  return digits.startsWith("0") ? `+92-${digits.slice(1, digits.startsWith("03") ? 4 : 3)}-${digits.slice(digits.startsWith("03") ? 4 : 3)}` : phone;
 }

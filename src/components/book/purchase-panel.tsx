@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MessageCircle } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import type { CartItemInput } from "@/lib/cart/cart";
 import { MAX_PER_LINE } from "@/lib/cart/cart";
 import { whatsappLink } from "@/lib/format";
@@ -44,7 +44,7 @@ export function PurchasePanel({ item, phoneE164 }: PurchasePanelProps) {
           target="_blank"
           rel="noopener noreferrer"
         >
-          <MessageCircle aria-hidden /> Order on WhatsApp
+          <WhatsAppIcon /> Order on WhatsApp
         </a>
       </Button>
     </div>

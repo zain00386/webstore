@@ -10,7 +10,6 @@ import {
   BookOpen,
   Info,
   LoaderCircle,
-  MessageCircle,
   ShoppingBag,
 } from "lucide-react";
 import type { DeliveryOption } from "@/lib/store-info";
@@ -44,6 +43,7 @@ import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { ChoiceCard } from "./choice-card";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 
 const cities = [
   "Rawalpindi",
@@ -438,7 +438,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
             rel="noopener noreferrer"
             className="inline-flex items-center gap-1 underline"
           >
-            <MessageCircle className="size-3" aria-hidden /> WhatsApp us
+            <WhatsAppIcon className="size-3" /> WhatsApp us
           </a>
         </p>
         <p className="text-xs text-muted-foreground">

@@ -4,7 +4,8 @@ import { umbrellaExams } from "@/config/exams";
 import { footerLinks, siteConfig } from "@/config/site";
 import { getStoreInfo } from "@/lib/db/store-info";
 import { telHref } from "@/lib/store-info";
-import { formatPKR } from "@/lib/format";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
+import { formatPKR, whatsappLink } from "@/lib/format";
 import { Logo } from "./logo";
 
 export async function SiteFooter() {
@@ -30,8 +31,22 @@ export async function SiteFooter() {
             </li>
             <li className="flex gap-2">
               <Phone className="mt-0.5 size-4 shrink-0" aria-hidden />
-              <a href={telHref(store)} className="hover:text-foreground">
-                {store.phoneDisplay} (call / WhatsApp)
+              <span>
+                Helpline:{" "}
+                {store.phones.map((p, i) => (
+                  <span key={p}>
+                    {i > 0 && ", "}
+                    <a href={telHref(p)} className="hover:text-foreground">
+                      {p}
+                    </a>
+                  </span>
+                ))}
+              </span>
+            </li>
+            <li className="flex gap-2">
+              <WhatsAppIcon className="mt-0.5 size-4 shrink-0 text-whatsapp" />
+              <a href={whatsappLink(store.phoneE164)} target="_blank" rel="noopener noreferrer" className="hover:text-foreground">
+                WhatsApp: {store.whatsappDisplay}
               </a>
             </li>
             <li className="flex gap-2">

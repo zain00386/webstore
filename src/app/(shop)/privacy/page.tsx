@@ -28,7 +28,7 @@ export default async function PrivacyPage() {
       <p>Your cart is saved in your own browser so it is still there when you come back.</p>
       <h2>Questions</h2>
       <p>
-        To see, correct or delete your details, contact us on {store.phoneDisplay}.
+        To see, correct or delete your details, call us on {store.phones.join(" or ")} or WhatsApp {store.whatsappDisplay}.
       </p>
     </InfoPage>
   );

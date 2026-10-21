@@ -18,7 +18,7 @@ export default async function MyOrdersPage() {
         Your recent orders on this device. Open one to see its status and payment details. This list is saved only in
         this browser; anyone using this device can see it, so remove orders here on a shared computer.
       </p>
-      <RecentOrdersList phoneDisplay={store.phoneDisplay} phoneE164={store.phoneE164} />
+      <RecentOrdersList phoneDisplay={store.whatsappDisplay} phoneE164={store.phoneE164} />
     </div>
   );
 }

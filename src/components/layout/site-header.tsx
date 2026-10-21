@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { MessageCircle, Phone, ShoppingBag } from "lucide-react";
+import { Phone, ShoppingBag } from "lucide-react";
+import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
 import { whatsappLink } from "@/lib/format";
 import { CartCount } from "@/components/cart/cart-count";
 import { Button } from "@/components/ui/button";
@@ -16,24 +17,27 @@ export async function SiteHeader() {
         <Logo />
         <SearchForm className="hidden max-w-xl flex-1 md:block" id="header-search" />
         <div className="ml-auto flex items-center gap-2">
-          <a
-            href={telHref(store)}
-            className="hidden items-center gap-2 rounded-full px-3 py-1.5 text-xs hover:bg-muted lg:flex"
-          >
+          <div className="hidden items-center gap-2 px-3 py-1.5 text-xs lg:flex">
             <Phone className="size-4" aria-hidden />
             <span className="flex flex-col leading-tight">
               <span className="text-muted-foreground">Helpline</span>
-              <span className="font-semibold">{store.phoneDisplay}</span>
+              <span className="flex gap-2 font-semibold">
+                {store.phones.map((p) => (
+                  <a key={p} href={telHref(p)} className="hover:underline">
+                    {p}
+                  </a>
+                ))}
+              </span>
             </span>
-          </a>
+          </div>
           <Button asChild variant="outline" size="icon" className="text-whatsapp">
             <a
               href={whatsappLink(store.phoneE164)}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`WhatsApp us on ${store.phoneDisplay} (opens in a new tab)`}
+              aria-label={`WhatsApp us on ${store.whatsappDisplay} (opens in a new tab)`}
             >
-              <MessageCircle aria-hidden />
+              <WhatsAppIcon />
             </a>
           </Button>
           <Button asChild variant="default" size="default">
