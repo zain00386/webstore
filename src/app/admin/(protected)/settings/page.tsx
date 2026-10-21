@@ -29,7 +29,7 @@ export default async function AdminSettingsPage() {
 
       {needsUpdate || !s ? (
         <Alert tone="warning" title="Database update needed">
-          Paste the new files from <code>supabase/migrations/</code> (0005 to 0008) into the Supabase SQL Editor and click
+          Paste the new files from <code>supabase/migrations/</code> (0005 to 0009) into the Supabase SQL Editor and click
           Run, then reload this page. <code>npm run db:check</code> lists what&apos;s missing.
         </Alert>
       ) : (
