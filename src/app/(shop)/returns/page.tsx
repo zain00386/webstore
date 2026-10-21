@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { InfoPage } from "@/components/layout/info-page";
 import { getStoreInfo } from "@/lib/db/store-info";
 
-export const metadata: Metadata = { title: "Returns & exchanges" };
+export const metadata: Metadata = { title: "Returns & exchanges", alternates: { canonical: "/returns" } };
 
 // DRAFT, based on the Lahore main branch's exchange policy. Owner to confirm for Rawalpindi.
 export default async function ReturnsPage() {

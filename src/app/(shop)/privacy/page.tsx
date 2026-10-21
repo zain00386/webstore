@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { InfoPage } from "@/components/layout/info-page";
 import { getStoreInfo } from "@/lib/db/store-info";
 
-export const metadata: Metadata = { title: "Privacy policy" };
+export const metadata: Metadata = { title: "Privacy policy", alternates: { canonical: "/privacy" } };
 
 // DRAFT for the owner to review. Not legal advice.
 export default async function PrivacyPage() {

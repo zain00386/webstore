@@ -1,3 +1,4 @@
+import { siteUrl } from "@/lib/site-url";
 import type { Book } from "@/types/book";
 
 /**
@@ -5,12 +6,12 @@ import type { Book } from "@/types/book";
  * No ratings or reviews are included because the shop doesn't have any yet.
  */
 export function productJsonLd(book: Book, categoryName?: string) {
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  const base = siteUrl();
   return {
     "@context": "https://schema.org",
     "@type": ["Product", "Book"],
     name: book.title,
-    url: `${siteUrl}/books/${book.slug}`,
+    url: `${base}/books/${book.slug}`,
     ...(book.images.length ? { image: book.images } : {}),
     ...(book.description.length ? { description: book.description.join(" ").replace(/•\s*/g, "").slice(0, 500) } : {}),
     ...(book.isbn ? { isbn: book.isbn, gtin13: book.isbn.length === 13 ? book.isbn : undefined } : {}),
@@ -22,7 +23,7 @@ export function productJsonLd(book: Book, categoryName?: string) {
     ...(categoryName ? { category: categoryName } : {}),
     offers: {
       "@type": "Offer",
-      url: `${siteUrl}/books/${book.slug}`,
+      url: `${base}/books/${book.slug}`,
       priceCurrency: "PKR",
       price: book.price.toFixed(2),
       availability: book.stockQuantity > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

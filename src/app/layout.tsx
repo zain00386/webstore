@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Lexend } from "next/font/google";
 import { siteConfig } from "@/config/site";
+import { siteUrl } from "@/lib/site-url";
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
 
@@ -11,7 +12,7 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(siteUrl()),
   title: {
     default: `${siteConfig.fullName} | Exam, Test Prep & Academic Books`,
     template: `%s | ${siteConfig.fullName}`,
@@ -22,7 +23,10 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_PK",
     siteName: siteConfig.fullName,
+    // Default picture when a page is shared on WhatsApp/Facebook (pages with a cover use their own).
+    images: [{ url: "/brand/logo.png", width: 256, height: 256, alt: siteConfig.fullName }],
   },
+  twitter: { card: "summary" },
 };
 
 export const viewport: Viewport = {

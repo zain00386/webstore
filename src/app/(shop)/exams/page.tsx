@@ -12,6 +12,7 @@ export const metadata: Metadata = {
   title: "Browse by exam",
   description:
     "Find books for CSS, PMS, FPSC, PPSC, MDCAT, ECAT, NUST NET, ISSB, police, educators, nurses and other recruitment tests.",
+  alternates: { canonical: "/exams" },
 };
 
 function ExamLink({ href, label, count }: { href: string; label: string; count: number }) {

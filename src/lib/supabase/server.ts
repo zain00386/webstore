@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { SESSION_COOKIE_OPTIONS, withSessionMaxAge } from "./cookie-options";
 import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { describeProblems, getSupabasePublicConfig, getSupabaseServiceConfig } from "@/lib/env";
@@ -35,11 +36,12 @@ export async function createSessionClient(): Promise<Db> {
   if (!config.ok) throw new SupabaseNotConfiguredError(describeProblems(config.problems));
   const cookieStore = await cookies();
   return createServerClient<Database>(config.value.url, config.value.anonKey, {
+    cookieOptions: SESSION_COOKIE_OPTIONS,
     cookies: {
       getAll: () => cookieStore.getAll(),
       setAll: (toSet) => {
         try {
-          toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          toSet.forEach(({ name, value, options }) => cookieStore.set(name, value, withSessionMaxAge(options)));
         } catch {
           // Called from a Server Component, where cookies are read-only. The proxy refreshes sessions.
         }

@@ -7,6 +7,7 @@ import { InfoPage } from "@/components/layout/info-page";
 export const metadata: Metadata = {
   title: "Shipping & delivery",
   description: "Delivery all over Pakistan by Pakistan Post or courier (TCS / Leopards / M&P), with Cash on Delivery on courier orders.",
+  alternates: { canonical: "/shipping" },
 };
 
 export default async function ShippingPage() {

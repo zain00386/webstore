@@ -223,6 +223,9 @@ export type Database = {
         };
         Returns: { order_id: string; order_number: string; total: number; created: boolean }[];
       };
+      rate_limit_check: { Args: { p_bucket: string; p_key_hash: string; p_limit: number; p_window_seconds: number }; Returns: number };
+      rate_limit_hit: { Args: { p_bucket: string; p_key_hash: string }; Returns: undefined };
+      rate_limit_reset: { Args: { p_bucket: string; p_key_hash: string }; Returns: undefined };
       admin_update_order: {
         Args: {
           p_order_id: string;

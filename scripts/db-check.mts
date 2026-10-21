@@ -119,6 +119,14 @@ else fail("Posts can't be published without a date yet", "Paste supabase/migrati
 if (pubRow && "delivery_notes" in pubRow) ok("Delivery settings are installed");
 else fail("Delivery settings are missing", "Paste supabase/migrations/20261021000008_delivery_notes.sql into the SQL Editor and click Run.");
 
+// 3g. Shared rate limits (migration 0009): the server can check a (made-up) key.
+const rl = await server.rpc("rate_limit_check", { p_bucket: "db_check", p_key_hash: "0".repeat(64), p_limit: 1, p_window_seconds: 60 });
+if (!rl.error) ok("Shared rate limits are installed");
+else fail("Shared rate limits are missing (the site falls back to per-server limits)", "Paste supabase/migrations/20261021000009_rate_limits.sql into the SQL Editor and click Run.");
+const rlVisitor = await visitor.rpc("rate_limit_check", { p_bucket: "db_check", p_key_hash: "0".repeat(64), p_limit: 1, p_window_seconds: 60 });
+if (rl.error || rlVisitor.error) ok("Visitors cannot use the rate-limit functions");
+else fail("Visitors CAN use the rate-limit functions", "Re-run supabase/migrations/20261021000009_rate_limits.sql.");
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

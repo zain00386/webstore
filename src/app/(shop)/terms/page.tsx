@@ -4,7 +4,7 @@ import { siteConfig } from "@/config/site";
 import { InfoPage } from "@/components/layout/info-page";
 import { getStoreInfo } from "@/lib/db/store-info";
 
-export const metadata: Metadata = { title: "Terms & conditions" };
+export const metadata: Metadata = { title: "Terms & conditions", alternates: { canonical: "/terms" } };
 
 // DRAFT for the owner to review. Not legal advice.
 export default async function TermsPage() {

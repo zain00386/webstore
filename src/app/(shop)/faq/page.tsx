@@ -6,7 +6,7 @@ import { formatPKR } from "@/lib/format";
 import type { StoreInfo } from "@/lib/store-info";
 import { InfoPage } from "@/components/layout/info-page";
 
-export const metadata: Metadata = { title: "FAQ", description: "Answers about delivery, payment and our Rawalpindi shop." };
+export const metadata: Metadata = { title: "FAQ", description: "Answers about delivery, payment and our Rawalpindi shop.", alternates: { canonical: "/faq" } };
 
 function faqsFor(store: StoreInfo) {
   const post = store.delivery.find((o) => o.id === "pakistan_post");

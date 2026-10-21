@@ -1,7 +1,19 @@
+type MaybePromise<T> = T | Promise<T>;
+
+/** What sign-in and checkout need from a limiter (in-memory or shared in the database). */
+export type RateLimiter = {
+  /** Is another attempt allowed right now? Does not record anything. */
+  check(key: string): MaybePromise<{ allowed: boolean; retryAfterMs: number }>;
+  /** Record an attempt. */
+  fail(key: string): MaybePromise<void>;
+  /** Forget a key's attempts. */
+  reset(key: string): MaybePromise<void>;
+};
+
 /**
- * Simple in-memory sliding-window limiter for sign-in attempts.
- * It protects a single server instance; Supabase Auth adds its own limits on
- * top. A shared store (e.g. a database table or Redis) can replace it later.
+ * Simple in-memory sliding-window limiter. It only protects one server
+ * instance; the website uses the shared database limiter (shared-rate-limit.ts),
+ * which falls back to this if the database isn't updated yet.
  */
 export function createRateLimiter({ limit, windowMs }: { limit: number; windowMs: number }) {
   const hits = new Map<string, number[]>();

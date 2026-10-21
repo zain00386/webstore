@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } from "lucide-react";
 import { categories } from "@/config/categories";
 import { examShortcuts, siteConfig } from "@/config/site";
 import { getStoreInfo } from "@/lib/db/store-info";
 import { deliveryLine, telHref } from "@/lib/store-info";
+import { jsonLdHtml, storeJsonLd } from "@/lib/seo/json-ld";
 import { umbrellaExams, type ExamDef } from "@/config/exams";
 import { getPublishedPosts } from "@/lib/db/posts";
 import { biggestDiscounts, booksForExam, categoryCounts, examCounts, newArrivals } from "@/lib/catalog/selectors";
@@ -26,6 +28,8 @@ function ViewAll({ href, label = "View all" }: { href: string; label?: string })
   );
 }
 
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
 export default async function HomePage() {
   const state = await getCatalogState();
   const store = await getStoreInfo();
@@ -44,6 +48,7 @@ export default async function HomePage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-14 px-4 py-8 lg:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(storeJsonLd(store))} />
       {/* Hero */}
       <section aria-labelledby="hero-title" className="grid items-center gap-8 lg:grid-cols-[1.2fr_1fr]">
         <div className="space-y-5">

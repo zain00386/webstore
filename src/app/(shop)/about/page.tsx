@@ -6,6 +6,7 @@ import { ShopCard } from "@/components/store/shop-card";
 export const metadata: Metadata = {
   title: "About us",
   description: "Dogar's Unique Books is the official Rawalpindi branch of Dogar Publishers, Lahore.",
+  alternates: { canonical: "/about" },
 };
 
 export default function AboutPage() {

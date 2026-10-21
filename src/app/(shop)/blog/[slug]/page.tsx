@@ -15,6 +15,7 @@ import { SectionHeading } from "@/components/layout/section-heading";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PostBody } from "@/components/blog/post-body";
+import { articleJsonLd, jsonLdHtml } from "@/lib/seo/json-ld";
 
 export async function generateStaticParams() {
   const posts = await getPublishedPosts();
@@ -71,6 +72,7 @@ async function PostDetail({ params }: { params: PageProps<"/blog/[slug]">["param
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 lg:px-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLdHtml(articleJsonLd(post))} />
       <Breadcrumbs
         items={[{ label: "Home", href: "/" }, { label: "Vacancies & blog", href: "/blog" }, { label: post.title }]}
       />

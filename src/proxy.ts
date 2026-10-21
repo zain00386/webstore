@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { SESSION_COOKIE_OPTIONS, withSessionMaxAge } from "@/lib/supabase/cookie-options";
 
 /**
  * Runs before /admin requests:
@@ -15,12 +16,13 @@ export async function proxy(request: NextRequest) {
 
   let response = NextResponse.next({ request });
   const supabase = createServerClient(url, key, {
+    cookieOptions: SESSION_COOKIE_OPTIONS,
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll: (toSet) => {
         toSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        toSet.forEach(({ name, value, options }) => response.cookies.set(name, value, withSessionMaxAge(options)));
       },
     },
   });

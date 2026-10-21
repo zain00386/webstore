@@ -59,6 +59,23 @@ try {
   });
   check("sign-in without an origin is rejected", noOrigin.status === 403, String(noOrigin.status));
 
+  // Login cookie protections and page safety headers (Phase 14)
+  const goodLogin = await fetch(BASE + "/admin/login/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Origin: BASE },
+    body: JSON.stringify({ email: admin.email, password: admin.password }),
+  });
+  const setCookies = goodLogin.headers.getSetCookie().filter((c) => c.startsWith("sb-"));
+  check("login cookie is set", goodLogin.ok && setCookies.length > 0, String(goodLogin.status));
+  check("login cookie is HttpOnly and SameSite=Lax", setCookies.length > 0 && setCookies.every((c) => /HttpOnly/i.test(c) && /SameSite=Lax/i.test(c)), setCookies.join(" || ").replace(/=[^;]{20,}/g, "=…"));
+  check("login cookie lasts 7 days, not 400", setCookies.every((c) => /Max-Age=604800/i.test(c)));
+  if (process.env.E2E_PRODUCTION) check("login cookie is Secure on the production build", setCookies.every((c) => /Secure/i.test(c)));
+  const home = await fetch(BASE + "/");
+  check(
+    "pages send safety headers",
+    home.headers.get("x-frame-options") === "DENY" && home.headers.get("x-content-type-options") === "nosniff" && !home.headers.get("x-powered-by"),
+  );
+
   // ---- browser ----
   const port = 9600 + Math.floor(Math.random() * 300);
   const proc = spawn("C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", ["--headless=new", "--disable-gpu", `--remote-debugging-port=${port}`, `--user-data-dir=${mkdtempSync(join(tmpdir(), "edge-adm-"))}`, "about:blank"], { stdio: "ignore" });
@@ -114,7 +131,8 @@ try {
   // 2. Wrong password
   await go("/admin/login");
   await login(admin.email, "wrong-password-123");
-  check("wrong password rejected", (await text()).includes("Incorrect email or password"));
+  await waitFor(async () => /Incorrect email or password|Too many|went wrong/.test(await text()), 15000);
+  check("wrong password rejected", (await text()).includes("Incorrect email or password"), (await text()).slice(0, 300));
   check("unknown email gets the same message", await (async () => { await go("/admin/login"); await login(`nobody-${tag}@example.com`, "x"); return (await text()).includes("Incorrect email or password"); })());
 
   // 3. Non-admin account

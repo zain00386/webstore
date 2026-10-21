@@ -1,5 +1,5 @@
 import { loginSchema } from "./login-schema";
-import type { createRateLimiter } from "./rate-limit";
+import type { RateLimiter } from "./rate-limit";
 import { safeAdminNext } from "./safe-next";
 
 /** What the sign-in needs from the outside world (Supabase in real use, fakes in tests). */
@@ -20,7 +20,7 @@ export type SignInResult =
  */
 export async function attemptAdminSignIn(
   input: { email: unknown; password: unknown; next: unknown },
-  limiter: ReturnType<typeof createRateLimiter>,
+  limiter: RateLimiter,
   deps: SignInDeps,
 ): Promise<SignInResult> {
   const rawEmail = String(input.email ?? "");
@@ -32,7 +32,7 @@ export async function attemptAdminSignIn(
   const { email, password } = parsed.data;
   const key = `${deps.clientKey}|${email}`;
 
-  const limit = limiter.check(key);
+  const limit = await limiter.check(key);
   if (!limit.allowed) {
     const minutes = Math.max(1, Math.ceil(limit.retryAfterMs / 60_000));
     return { ok: false, error: `Too many attempts. Please wait ${minutes} minute${minutes === 1 ? "" : "s"} and try again.`, email };
@@ -40,7 +40,7 @@ export async function attemptAdminSignIn(
 
   const { ok } = await deps.signInWithPassword(email, password);
   if (!ok) {
-    limiter.fail(key);
+    await limiter.fail(key);
     // Same message for a wrong email or a wrong password, so accounts can't be guessed.
     return { ok: false, error: "Incorrect email or password.", email };
   }
@@ -48,10 +48,10 @@ export async function attemptAdminSignIn(
   if (!(await deps.isAdmin())) {
     // Never leave a non-admin signed in to the admin area.
     await deps.signOut();
-    limiter.fail(key);
+    await limiter.fail(key);
     return { ok: false, error: "This account doesn't have admin access.", email };
   }
 
-  limiter.reset(key);
+  await limiter.reset(key);
   return { ok: true, redirectTo: safeAdminNext(String(input.next ?? "")) };
 }

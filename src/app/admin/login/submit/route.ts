@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createRateLimiter } from "@/lib/auth/rate-limit";
+import { createSharedRateLimiter } from "@/lib/auth/shared-rate-limit";
 import { isSameOrigin } from "@/lib/auth/same-origin";
 import { attemptAdminSignIn } from "@/lib/auth/sign-in";
 import { createSessionClient } from "@/lib/supabase/server";
@@ -11,9 +11,9 @@ import { createSessionClient } from "@/lib/supabase/server";
  * The browser then loads the admin page as a fresh request.
  */
 
-// 5 failed attempts per email + network address in 15 minutes (per server
-// instance; Supabase Auth also applies its own sign-in limits).
-const limiter = createRateLimiter({ limit: 5, windowMs: 15 * 60_000 });
+// 5 failed attempts per email + network address in 15 minutes, shared by all
+// servers (Supabase Auth also applies its own sign-in limits).
+const limiter = createSharedRateLimiter({ bucket: "admin_login", limit: 5, windowMs: 15 * 60_000 });
 
 const noStore = { "Cache-Control": "no-store" };
 

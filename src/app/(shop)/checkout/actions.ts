@@ -2,17 +2,18 @@
 
 import { headers } from "next/headers";
 import { after } from "next/server";
-import { createRateLimiter } from "@/lib/auth/rate-limit";
+import { createSharedRateLimiter } from "@/lib/auth/shared-rate-limit";
 import { placeOrderErrorResult, placeOrderSchema, type PlaceOrderResult } from "@/lib/orders/place-order";
 import { hashOrderToken } from "@/lib/orders/token";
 import { orderPath } from "@/lib/orders/recent-orders";
+import { siteUrl } from "@/lib/site-url";
 import { notifyOrderPlaced } from "@/lib/notifications/order-placed";
 import { refreshShop } from "@/lib/db/refresh-shop";
 import { createServiceClient } from "@/lib/supabase/server";
 
-// Stops one person tying up stock with lots of fake orders (per server instance).
-const perDevice = createRateLimiter({ limit: 10, windowMs: 60 * 60_000 });
-const perPhone = createRateLimiter({ limit: 5, windowMs: 60 * 60_000 });
+// Stops one person tying up stock with lots of fake orders (shared by all servers).
+const perDevice = createSharedRateLimiter({ bucket: "order_device", limit: 10, windowMs: 60 * 60_000 });
+const perPhone = createSharedRateLimiter({ bucket: "order_phone", limit: 5, windowMs: 60 * 60_000 });
 
 /**
  * Places a real order. The database function re-reads prices and stock, takes
@@ -31,7 +32,8 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
   const { idempotencyKey, accessToken, details, items } = parsed.data;
 
   const ip = (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "local";
-  if (!perDevice.check(ip).allowed || !perPhone.check(details.phone).allowed) {
+  const [device, phoneLimit] = await Promise.all([perDevice.check(ip), perPhone.check(details.phone)]);
+  if (!device.allowed || !phoneLimit.allowed) {
     return { ok: false, error: "Too many orders in a short time. Please WhatsApp us on 0324-9574895 and we'll help." };
   }
 
@@ -63,10 +65,8 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
   if (!row) return { ok: false, error: "We couldn't place your order. Please try again." };
 
   if (row.created) {
-    perDevice.fail(ip);
-    perPhone.fail(details.phone);
+    await Promise.all([perDevice.fail(ip), perPhone.fail(details.phone)]);
     refreshShop(); // stock changed: the shop shows it on the next request
-    const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
     const notice = {
       orderNumber: row.order_number,
       total: Number(row.total),
@@ -75,7 +75,7 @@ export async function placeOrder(input: unknown): Promise<PlaceOrderResult> {
       customerName: details.name,
       customerPhone: details.phone,
       customerEmail: details.email || null,
-      orderUrl: siteUrl + orderPath({ orderNumber: row.order_number, token: accessToken }),
+      orderUrl: siteUrl() + orderPath({ orderNumber: row.order_number, token: accessToken }),
     };
     after(() => notifyOrderPlaced(notice)); // runs after the reply: a slow service never delays the order
   }
