@@ -127,11 +127,6 @@ const rlVisitor = await visitor.rpc("rate_limit_check", { p_bucket: "db_check", 
 if (rl.error || rlVisitor.error) ok("Visitors cannot use the rate-limit functions");
 else fail("Visitors CAN use the rate-limit functions", "Re-run supabase/migrations/20261021000009_rate_limits.sql.");
 
-// 3h. Banner slides (migration 0010).
-const slidesProbe = await visitor.from("banner_slides").select("id").limit(1);
-if (!slidesProbe.error) ok("Banner slides are installed");
-else fail("Banner slides are missing (the banner is made automatically until then)", "Paste supabase/migrations/20261021000010_banner_slides.sql into the SQL Editor and click Run.");
-
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

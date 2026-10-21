@@ -37,21 +37,13 @@ type Props = {
  * Accessible carousel: buttons and dots to move, a pause button, pauses while
  * hovered or focused, and no automatic movement for reduced-motion users.
  */
-export function HeroSlider({
-  slides,
-  phones,
-  whatsappDisplay,
-  phoneE164,
-}: Props) {
+export function HeroSlider({ slides, phones, whatsappDisplay, phoneE164 }: Props) {
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
   const [hovering, setHovering] = useState(false);
   const reducedMotion = useReducedMotion();
   const count = slides.length;
-  const go = useCallback(
-    (n: number) => setIndex(((n % count) + count) % count),
-    [count],
-  );
+  const go = useCallback((n: number) => setIndex(((n % count) + count) % count), [count]);
   const autoplay = count > 1 && !paused && !hovering && !reducedMotion;
 
   useEffect(() => {
@@ -85,26 +77,18 @@ export function HeroSlider({
             className="grid items-center gap-6 p-6 sm:p-10 lg:grid-cols-[1.3fr_1fr]"
           >
             <div className="space-y-4">
-              {slide.eyebrow && (
-                <span className="inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold tracking-wide text-brand uppercase">
-                  {slide.eyebrow}
-                </span>
-              )}
-              <h2 className="text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
-                {slide.title}
-              </h2>
-              {slide.text && (
-                <p className="max-w-xl text-muted-foreground">{slide.text}</p>
-              )}
+              <span className="inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold tracking-wide text-brand uppercase">
+                {slide.eyebrow}
+              </span>
+              <h2 className="text-3xl leading-tight font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">{slide.title}</h2>
+              <p className="max-w-xl text-muted-foreground">{slide.text}</p>
               <div className="flex flex-wrap gap-2">
                 <Button asChild size="pill">
                   <Link href={slide.cta.href}>{slide.cta.label}</Link>
                 </Button>
                 {slide.secondary && (
                   <Button asChild size="pill" variant="outline">
-                    <Link href={slide.secondary.href}>
-                      {slide.secondary.label}
-                    </Link>
+                    <Link href={slide.secondary.href}>{slide.secondary.label}</Link>
                   </Button>
                 )}
               </div>
@@ -113,74 +97,36 @@ export function HeroSlider({
                 <span className="flex flex-wrap items-center gap-x-3">
                   <Phone className="size-4 text-brand" aria-hidden />
                   {phones.map((p) => (
-                    <a
-                      key={p}
-                      href={`tel:${p.replace(/[^\d+]/g, "")}`}
-                      className="inline-flex min-h-6 items-center tabular-nums hover:underline"
-                    >
+                    <a key={p} href={`tel:${p.replace(/[^\d+]/g, "")}`} className="inline-flex min-h-6 items-center tabular-nums hover:underline">
                       {p}
                     </a>
                   ))}
-                  <a
-                    href={whatsappLink(phoneE164)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-6 items-center gap-1 text-whatsapp tabular-nums hover:underline"
-                  >
+                  <a href={whatsappLink(phoneE164)} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-6 items-center gap-1 text-whatsapp tabular-nums hover:underline">
                     <WhatsAppIcon className="size-4" /> {whatsappDisplay}
                   </a>
                 </span>
               </p>
             </div>
-            {slide.imageUrl ? (
-              <div
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-card ring-1 ring-border"
-                aria-hidden
-              >
-                <CoverImage
-                  src={slide.imageUrl}
-                  alt=""
-                  fill
-                  sizes="(min-width: 1024px) 40vw, 100vw"
-                  className="object-contain"
-                  priority={i === 0}
-                />
-              </div>
-            ) : (
-              <div className="flex justify-center gap-4" aria-hidden>
-                {slide.books.map((b, n) => (
-                  <div
-                    key={b.title}
-                    className={cn(
-                      "relative aspect-[2/3] w-32 overflow-hidden rounded-xl bg-card shadow-xl ring-1 ring-border sm:w-40 lg:w-44",
-                      n === 0 ? "-rotate-3" : "mt-6 rotate-3",
-                    )}
-                  >
-                    <CoverImage
-                      src={b.coverUrl}
-                      alt=""
-                      fill
-                      sizes="176px"
-                      className="object-cover"
-                      priority={i === 0}
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="flex justify-center gap-4" aria-hidden>
+              {slide.books.map((b, n) => (
+                <div
+                  key={b.title}
+                  className={cn(
+                    "relative aspect-[2/3] w-32 overflow-hidden rounded-xl bg-card shadow-xl ring-1 ring-border sm:w-40 lg:w-44",
+                    n === 0 ? "-rotate-3" : "mt-6 rotate-3",
+                  )}
+                >
+                  <CoverImage src={b.coverUrl} alt="" fill sizes="176px" className="object-cover" priority={i === 0} />
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
 
       {count > 1 && (
         <div className="flex items-center justify-center gap-2 border-t border-border bg-card/60 px-4 py-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => go(index - 1)}
-            aria-label="Previous slide"
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={() => go(index - 1)} aria-label="Previous slide">
             <ChevronLeft aria-hidden />
           </Button>
           <div className="flex items-center">
@@ -193,32 +139,15 @@ export function HeroSlider({
                 aria-current={i === index ? "true" : undefined}
                 className="flex size-10 items-center justify-center rounded-full"
               >
-                <span
-                  className={cn(
-                    "size-2.5 rounded-full ring-1 ring-foreground/40",
-                    i === index && "bg-foreground ring-foreground",
-                  )}
-                />
+                <span className={cn("size-2.5 rounded-full ring-1 ring-foreground/40", i === index && "bg-foreground ring-foreground")} />
               </button>
             ))}
           </div>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => go(index + 1)}
-            aria-label="Next slide"
-          >
+          <Button type="button" variant="ghost" size="icon" onClick={() => go(index + 1)} aria-label="Next slide">
             <ChevronRight aria-hidden />
           </Button>
           {!reducedMotion && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => setPaused((p) => !p)}
-              aria-label={paused ? "Play slides" : "Pause slides"}
-            >
+            <Button type="button" variant="ghost" size="icon" onClick={() => setPaused((p) => !p)} aria-label={paused ? "Play slides" : "Pause slides"}>
               {paused ? <Play aria-hidden /> : <Pause aria-hidden />}
             </Button>
           )}

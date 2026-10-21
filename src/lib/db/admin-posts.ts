@@ -27,9 +27,9 @@ export async function fetchAdminPost(db: Db, id: string): Promise<PostRow | null
   return data;
 }
 
-/** Stores an uploaded image under posts/ (or banners/) <slug>-<random>.<ext>; returns the storage path. */
-export async function uploadPostImage(db: Db, slug: string, bytes: Uint8Array, kind: ImageKind, folder: "posts" | "banners" = "posts"): Promise<string> {
-  const path = `${folder}/${slug.slice(0, 80)}-${randomBytes(4).toString("hex")}.${kind.ext}`;
+/** Stores an uploaded post image under posts/<slug>-<random>.<ext>; returns the storage path. */
+export async function uploadPostImage(db: Db, slug: string, bytes: Uint8Array, kind: ImageKind): Promise<string> {
+  const path = `posts/${slug.slice(0, 80)}-${randomBytes(4).toString("hex")}.${kind.ext}`;
   const { error } = await db.storage.from(POST_IMAGES_BUCKET).upload(path, bytes, {
     contentType: kind.mime,
     cacheControl: "31536000",

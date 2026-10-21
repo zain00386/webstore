@@ -96,7 +96,6 @@ export type StoreSettingsRow = {
   bank_iban: string | null;
   payment_instructions: string;
   delivery_notes: string;
-  banner_auto_vacancies: boolean;
   updated_at: string;
 };
 
@@ -118,23 +117,7 @@ export type PublicSettings = Pick<
   | "easypaisa_enabled"
   | "bank_enabled"
   | "delivery_notes"
-  | "banner_auto_vacancies"
 >;
-
-export type BannerSlideRow = Timestamps & {
-  id: string;
-  eyebrow: string;
-  title: string;
-  body: string;
-  image_path: string | null;
-  exam_tag: string | null;
-  button_label: string;
-  button_href: string;
-  secondary_label: string | null;
-  secondary_href: string | null;
-  is_active: boolean;
-  sort_order: number;
-};
 
 export type AdminUserRow = { user_id: string; note: string | null; created_at: string };
 
@@ -224,7 +207,6 @@ export type Database = {
         Insertable<OrderItemRow, "order_id" | "title_snapshot" | "unit_price" | "quantity", "line_total">
       >;
       order_events: Table<OrderEventRow, Insertable<OrderEventRow, "order_id" | "event", "id">>;
-      banner_slides: Table<BannerSlideRow, Insertable<BannerSlideRow, "title" | "button_label" | "button_href">>;
     };
     Views: Record<string, never>;
     Functions: {
