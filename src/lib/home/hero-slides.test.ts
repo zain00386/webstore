@@ -41,4 +41,20 @@ describe("home banner slides", () => {
   it("shows nothing when there are no books", () => {
     expect(buildHeroSlides([vacancy("a", "jobs")], [])).toEqual([]);
   });
+
+  it("puts the owner's slides first, then new vacancies; never the automatic exam slides", () => {
+    const owner = [
+      { id: "1", eyebrow: "New", title: "FIA prep", body: "", imageUrl: "https://x/pic.png", examTag: null, button: { label: "Buy", href: "/books" }, secondary: null },
+      { id: "2", eyebrow: "", title: "CSS", body: "", imageUrl: null, examTag: "css-pms", button: { label: "Buy", href: "/books?exam=css-pms" }, secondary: null },
+    ];
+    const slides = buildHeroSlides([vacancy("fia-jobs", "jobs")], books, { owner });
+    expect(slides.map((s) => s.id)).toEqual(["owner-1", "owner-2", "post-fia-jobs"]);
+    expect(slides[0].imageUrl).toBe("https://x/pic.png");
+    expect(slides[1].books.map((b) => b.title)).toEqual(["css-guide"]);
+    expect(buildHeroSlides([vacancy("fia-jobs", "jobs")], books, { owner, autoVacancies: false }).map((s) => s.id)).toEqual(["owner-1", "owner-2"]);
+  });
+
+  it("with the switch off and no own slides, skips vacancy slides", () => {
+    expect(buildHeroSlides([vacancy("fia-jobs", "jobs")], books, { autoVacancies: false }).map((s) => s.id)).toEqual(["new-arrivals", "exam-css-pms", "exam-jobs"]);
+  });
 });

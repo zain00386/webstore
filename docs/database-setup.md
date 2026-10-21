@@ -166,3 +166,4 @@ project). `npm run db:check` tells you if something is missing.
 | `20261021000007_posts_publish_now.sql` | Phase 11 | "Publish now" uses the database clock |
 | `20261021000008_delivery_notes.sql` | Phase 12 | Delivery note setting, fee limits, at least one delivery option on |
 | `20261021000009_rate_limits.sql` | Phase 14 | Login and order limits shared by all servers (only scrambled keys stored) |
+| `20261021000010_banner_slides.sql` | Banner | Home page banner slides edited in Admin → Banner; switch for automatic vacancy slides |

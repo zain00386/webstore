@@ -19,6 +19,7 @@ const settings: PublicSettings = {
   easypaisa_enabled: true,
   bank_enabled: false,
   delivery_notes: "",
+  banner_auto_vacancies: true,
 };
 
 describe("store info from settings", () => {

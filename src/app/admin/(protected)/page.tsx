@@ -107,6 +107,12 @@ export default async function AdminOverviewPage() {
             : choose which books show in &ldquo;New arrivals&rdquo; on the home page (tick or untick in the list)
           </li>
           <li>
+            <Link href="/admin/banner" className="underline">
+              Banner
+            </Link>
+            : the sliding banner at the top of the home page (your own slides)
+          </li>
+          <li>
             <Link href="/admin/posts/new" className="underline">
               New post
             </Link>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookCopy, FolderTree, LayoutDashboard, Newspaper, Settings, ShoppingCart, type LucideIcon } from "lucide-react";
+import { BookCopy, FolderTree, GalleryHorizontal, LayoutDashboard, Newspaper, Settings, ShoppingCart, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const items: { label: string; href: string; icon: LucideIcon }[] = [
@@ -11,6 +11,7 @@ const items: { label: string; href: string; icon: LucideIcon }[] = [
   { label: "Categories", href: "/admin/categories", icon: FolderTree },
   { label: "Orders", href: "/admin/orders", icon: ShoppingCart },
   { label: "Posts", href: "/admin/posts", icon: Newspaper },
+  { label: "Banner", href: "/admin/banner", icon: GalleryHorizontal },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

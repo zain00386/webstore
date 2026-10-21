@@ -2,6 +2,7 @@ import "server-only";
 import { revalidatePath, updateTag } from "next/cache";
 import { CATALOG_TAG } from "./catalog";
 import { POSTS_TAG } from "./posts";
+import { BANNER_TAG } from "./banner";
 
 /**
  * Call from a Server Action after any change to books, categories or settings.
@@ -19,5 +20,11 @@ export function refreshShop() {
 /** Call from a Server Action after a post is saved, published or deleted. */
 export function refreshPosts() {
   updateTag(POSTS_TAG);
+  revalidatePath("/", "layout");
+}
+
+/** Call from a Server Action after a banner slide is saved or deleted. */
+export function refreshBanner() {
+  updateTag(BANNER_TAG);
   revalidatePath("/", "layout");
 }

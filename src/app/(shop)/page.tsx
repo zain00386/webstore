@@ -19,6 +19,7 @@ import { TrustRow } from "@/components/store/trust-row";
 import { ShopMap } from "@/components/store/shop-map";
 import { HeroSlider } from "@/components/home/hero-slider";
 import { buildHeroSlides } from "@/lib/home/hero-slides";
+import { loadBannerSlides } from "@/lib/db/banner";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { OpenStatus } from "@/components/store/open-status";
 import { Badge } from "@/components/ui/badge";
@@ -44,7 +45,9 @@ export default async function HomePage() {
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
   const allPosts = await getPublishedPosts();
   const latestPosts = allPosts.slice(0, 3);
-  const slides = buildHeroSlides(allPosts, books);
+  const ownerSlides = await loadBannerSlides();
+  const autoVacancies = state.status === "ready" ? state.catalog.settings.banner_auto_vacancies !== false : true;
+  const slides = buildHeroSlides(allPosts, books, { owner: ownerSlides, autoVacancies });
   const exCounts = examCounts(books);
   // Rows of books per popular exam (only exams that have books).
   const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
