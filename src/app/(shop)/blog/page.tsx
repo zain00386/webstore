@@ -2,23 +2,35 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { Newspaper } from "lucide-react";
-import { getPublishedPosts } from "@/data/posts";
+import { getPublishedPosts } from "@/lib/db/posts";
 import { PostCard } from "@/components/blog/post-card";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
+import { Pagination } from "@/components/layout/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Job vacancies & blog",
   description: "Latest government and private job vacancies in Pakistan, with the books to prepare, plus study guides.",
+  alternates: { canonical: "/blog" },
 };
+
+const PER_PAGE = 12;
 
 const tabs = [
   { value: undefined, label: "All" },
   { value: "vacancy", label: "Vacancies" },
   { value: "blog", label: "Blog" },
 ] as const;
+
+const hrefFor = (kind: "vacancy" | "blog" | undefined, page = 1) => {
+  const sp = new URLSearchParams();
+  if (kind) sp.set("type", kind);
+  if (page > 1) sp.set("page", String(page));
+  const s = sp.toString();
+  return s ? `/blog?${s}` : "/blog";
+};
 
 export default function BlogPage({ searchParams }: PageProps<"/blog">) {
   return (
@@ -32,15 +44,19 @@ export default function BlogPage({ searchParams }: PageProps<"/blog">) {
         {searchParams.then((p) => {
           const raw = Array.isArray(p.type) ? p.type[0] : p.type;
           const kind = raw === "vacancy" || raw === "blog" ? raw : undefined;
-          return <PostList kind={kind} />;
+          const page = Math.max(1, Math.floor(Number(Array.isArray(p.page) ? p.page[0] : p.page) || 1));
+          return <PostList kind={kind} page={page} />;
         })}
       </Suspense>
     </div>
   );
 }
 
-function PostList({ kind }: { kind?: "vacancy" | "blog" }) {
-  const posts = getPublishedPosts(kind);
+async function PostList({ kind, page }: { kind?: "vacancy" | "blog"; page: number }) {
+  const all = await getPublishedPosts(kind);
+  const pageCount = Math.max(1, Math.ceil(all.length / PER_PAGE));
+  const current = Math.min(page, pageCount);
+  const posts = all.slice((current - 1) * PER_PAGE, current * PER_PAGE);
   return (
     <>
       <nav aria-label="Post type" className="mb-6 flex gap-2">
@@ -49,7 +65,7 @@ function PostList({ kind }: { kind?: "vacancy" | "blog" }) {
           return (
             <Link
               key={t.label}
-              href={t.value ? `/blog?type=${t.value}` : "/blog"}
+              href={hrefFor(t.value)}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "inline-flex h-10 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border hover:bg-muted",
@@ -62,13 +78,16 @@ function PostList({ kind }: { kind?: "vacancy" | "blog" }) {
         })}
       </nav>
       {posts.length > 0 ? (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {posts.map((post) => (
-            <li key={post.slug}>
-              <PostCard post={post} />
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {posts.map((post) => (
+              <li key={post.slug}>
+                <PostCard post={post} />
+              </li>
+            ))}
+          </ul>
+          <Pagination page={current} pageCount={pageCount} hrefFor={(n) => hrefFor(kind, n)} />
+        </>
       ) : (
         <EmptyState icon={Newspaper} title="No posts yet" description="Check back soon for new vacancies and guides." />
       )}

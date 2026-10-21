@@ -108,6 +108,13 @@ else if (adminStep.error && /Could not find the function|does not exist/i.test(a
   fail("Admin order management is missing", "Paste supabase/migrations/20261021000006_admin_orders.sql into the SQL Editor and click Run.");
 } else fail(`Admin order check gave an unexpected result: ${adminStep.error?.message ?? "no error"}`);
 
+// 3e. "Publish now" uses the database clock (migration 0007): a dated-less published test post gets a date.
+const probeSlug = `db-check-probe-${Date.now()}`;
+const probePost = await server.from("posts").insert({ slug: probeSlug, title: "db check", kind: "blog", status: "published" }).select("published_at");
+await server.from("posts").delete().eq("slug", probeSlug);
+if (!probePost.error && probePost.data?.[0]?.published_at) ok("Posts publish with the database clock");
+else fail("Posts can't be published without a date yet", "Paste supabase/migrations/20261021000007_posts_publish_now.sql into the SQL Editor and click Run.");
+
 // 4. Public sign-up must be off (there is no sign-up page; admins are added by hand)
 try {
   const res = await fetch(`${env.url}/auth/v1/settings`, { headers: { apikey: env.anonKey } });

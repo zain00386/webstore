@@ -223,10 +223,14 @@ describe("data rules (enforced by the database itself)", () => {
     expect(await post("https://www.ppsc.gop.pk/jobs?id=4")).toBeNull();
   });
 
-  it("requires a publish date on published posts", async () => {
-    expect(await errorOf(db.query("insert into public.posts (slug, title, kind, status) values ('nodate', 'X', 'blog', 'published')"))).toMatch(
-      /posts_published_needs_date/,
+  it("gives a published post with no date the database's current time", async () => {
+    const r = await db.query<{ ok: boolean }>(
+      "insert into public.posts (slug, title, kind, status) values ('nodate', 'X', 'blog', 'published') returning published_at between now() - interval '1 minute' and now() as ok",
     );
+    expect(r.rows[0].ok).toBe(true);
+    // drafts stay without a date
+    const d = await db.query<{ published_at: string | null }>("insert into public.posts (slug, title, kind) values ('draft-nodate', 'Y', 'blog') returning published_at");
+    expect(d.rows[0].published_at).toBeNull();
   });
 
   it("keeps updated_at current", async () => {

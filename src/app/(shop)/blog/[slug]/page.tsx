@@ -1,49 +1,42 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, Building2, CalendarClock, ExternalLink, MapPin, Users } from "lucide-react";
 import { booksForExam } from "@/lib/catalog/selectors";
 import { getCatalogState } from "@/lib/db/catalog";
-import { getPostBySlug, getPublishedPosts } from "@/data/posts";
+import { getPostBySlug, getPublishedPosts } from "@/lib/db/posts";
 import { formatDate, safeExternalUrl } from "@/lib/safe-url";
 import { PostCard, PostKindBadge } from "@/components/blog/post-card";
 import { BookGrid } from "@/components/book/shop-book-card";
-import { Alert } from "@/components/feedback/alert";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { SectionHeading } from "@/components/layout/section-heading";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { PostBlock } from "@/types/post";
+import { PostBody } from "@/components/blog/post-body";
 
-export function generateStaticParams() {
-  return getPublishedPosts().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const posts = await getPublishedPosts();
+  // Cache Components needs at least one entry; other posts render on first visit.
+  return posts.length ? posts.map((p) => ({ slug: p.slug })) : [{ slug: "__placeholder__" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/blog/[slug]">): Promise<Metadata> {
-  const post = getPostBySlug((await params).slug);
+  const post = await getPostBySlug((await params).slug);
   if (!post) return { title: "Post not found" };
   return {
     title: post.seoTitle ?? post.title,
     description: post.seoDescription ?? post.excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
-    // Sample posts must never appear in Google.
-    robots: post.isSample ? { index: false } : undefined,
-    openGraph: { type: "article", title: post.title, description: post.excerpt, publishedTime: post.publishedAt },
+    openGraph: {
+      type: "article",
+      title: post.title,
+      description: post.excerpt,
+      publishedTime: post.publishedAt,
+      images: post.coverUrl ? [post.coverUrl] : undefined,
+    },
   };
-}
-
-function Block({ block }: { block: PostBlock }) {
-  if (block.type === "h2") return <h2 className="pt-4 text-xl font-semibold">{block.text}</h2>;
-  if (block.type === "ul")
-    return (
-      <ul className="list-disc space-y-1.5 pl-5">
-        {block.items.map((item, i) => (
-          <li key={i}>{item}</li>
-        ))}
-      </ul>
-    );
-  return <p>{block.text}</p>;
 }
 
 export default function PostPage({ params }: PageProps<"/blog/[slug]">) {
@@ -65,14 +58,14 @@ export default function PostPage({ params }: PageProps<"/blog/[slug]">) {
 }
 
 async function PostDetail({ params }: { params: PageProps<"/blog/[slug]">["params"] }) {
-  const post = getPostBySlug((await params).slug);
+  const post = await getPostBySlug((await params).slug);
   if (!post) notFound();
 
   const applyUrl = safeExternalUrl(post.vacancy?.applyUrl);
-  const examSlug = post.vacancy?.examSlug;
+  const examSlug = post.examSlug;
   const catalogState = examSlug ? await getCatalogState() : null;
   const books = examSlug && catalogState?.status === "ready" ? booksForExam(catalogState.catalog.books, examSlug, 4) : [];
-  const more = getPublishedPosts(post.kind)
+  const more = (await getPublishedPosts(post.kind))
     .filter((p) => p.slug !== post.slug)
     .slice(0, 3);
 
@@ -88,43 +81,39 @@ async function PostDetail({ params }: { params: PageProps<"/blog/[slug]">["param
           Published <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
         </p>
 
-        {post.isSample && (
-          <Alert tone="warning" title="Sample post" className="mt-6">
-            This page shows how posts will look. It is not a real announcement.
-          </Alert>
+        {post.coverUrl && (
+          <Image
+            src={post.coverUrl}
+            alt=""
+            width={1200}
+            height={675}
+            priority
+            sizes="(min-width: 768px) 768px, 100vw"
+            className="mt-6 aspect-video w-full rounded-2xl object-cover ring-1 ring-border"
+          />
         )}
 
         {post.vacancy && (
           <section aria-label="Vacancy details" className="mt-6 rounded-2xl bg-surface p-5 ring-1 ring-border">
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div className="flex gap-2.5">
-                <Building2 className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-                <div>
-                  <dt className="text-muted-foreground">Organisation</dt>
-                  <dd className="font-medium">{post.vacancy.organisation}</dd>
-                </div>
-              </div>
-              <div className="flex gap-2.5">
-                <Users className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-                <div>
-                  <dt className="text-muted-foreground">Positions</dt>
-                  <dd className="font-medium">{post.vacancy.positions}</dd>
-                </div>
-              </div>
-              <div className="flex gap-2.5">
-                <MapPin className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-                <div>
-                  <dt className="text-muted-foreground">Location</dt>
-                  <dd className="font-medium">{post.vacancy.location}</dd>
-                </div>
-              </div>
-              <div className="flex gap-2.5">
-                <CalendarClock className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
-                <div>
-                  <dt className="text-muted-foreground">Last date to apply</dt>
-                  <dd className="font-medium">{formatDate(post.vacancy.lastDate)}</dd>
-                </div>
-              </div>
+              {(
+                [
+                  [Building2, "Organisation", post.vacancy.organisation],
+                  [Users, "Positions", post.vacancy.positions],
+                  [MapPin, "Location", post.vacancy.location],
+                  [CalendarClock, "Last date to apply", post.vacancy.lastDate ? formatDate(post.vacancy.lastDate) : null],
+                ] as const
+              )
+                .filter(([, , value]) => value)
+                .map(([Icon, label, value]) => (
+                  <div key={label} className="flex gap-2.5">
+                    <Icon className="mt-0.5 size-4 shrink-0 text-brand" aria-hidden />
+                    <div>
+                      <dt className="text-muted-foreground">{label}</dt>
+                      <dd className="font-medium">{value}</dd>
+                    </div>
+                  </div>
+                ))}
             </dl>
             {applyUrl && (
               <Button asChild variant="outline" size="pill" className="mt-5">
@@ -137,10 +126,8 @@ async function PostDetail({ params }: { params: PageProps<"/blog/[slug]">["param
           </section>
         )}
 
-        <div className="mt-8 space-y-4 leading-relaxed text-foreground/85">
-          {post.body.map((block, i) => (
-            <Block key={i} block={block} />
-          ))}
+        <div className="mt-8">
+          <PostBody markdown={post.body} />
         </div>
       </article>
 

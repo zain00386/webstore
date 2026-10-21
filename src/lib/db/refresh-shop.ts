@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath, updateTag } from "next/cache";
 import { CATALOG_TAG } from "./catalog";
+import { POSTS_TAG } from "./posts";
 
 /**
  * Call from a Server Action after any change to books, categories or settings.
@@ -12,5 +13,11 @@ import { CATALOG_TAG } from "./catalog";
  */
 export function refreshShop() {
   updateTag(CATALOG_TAG);
+  revalidatePath("/", "layout");
+}
+
+/** Call from a Server Action after a post is saved, published or deleted. */
+export function refreshPosts() {
+  updateTag(POSTS_TAG);
   revalidatePath("/", "layout");
 }

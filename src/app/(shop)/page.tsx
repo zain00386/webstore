@@ -3,7 +3,7 @@ import { ArrowRight, BadgeCheck, Clock, MapPin, MessageCircle, Phone, Truck } fr
 import { categories } from "@/config/categories";
 import { deliveryOptions, examShortcuts, siteConfig } from "@/config/site";
 import { umbrellaExams, type ExamDef } from "@/config/exams";
-import { getPublishedPosts } from "@/data/posts";
+import { getPublishedPosts } from "@/lib/db/posts";
 import { biggestDiscounts, booksForExam, categoryCounts, examCounts, newArrivals } from "@/lib/catalog/selectors";
 import { getCatalogState } from "@/lib/db/catalog";
 import { formatPKR, whatsappLink } from "@/lib/format";
@@ -31,7 +31,7 @@ export default async function HomePage() {
   const onSale = biggestDiscounts(books, 10);
   const counts = categoryCounts(books);
   const shownCategories = categories.filter((c) => c.slug !== "other" && counts.get(c.slug));
-  const vacancies = getPublishedPosts("vacancy").slice(0, 3);
+  const latestPosts = (await getPublishedPosts()).slice(0, 3);
   const exCounts = examCounts(books);
   // Rows of books per popular exam (only exams that have books).
   const examRows = ["css-pms", "mdcat-ecat", "jobs", "armed-forces", "law"]
@@ -142,22 +142,24 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section aria-labelledby="vacancies-title" className="rounded-3xl bg-surface p-5 ring-1 ring-border sm:p-6">
-        <SectionHeading
-          id="vacancies-title"
-          eyebrow="Updated daily"
-          title="Latest job vacancies"
-          description="Government and private jobs, with the books to prepare for each test."
-          action={<ViewAll href="/blog?type=vacancy" label="All vacancies" />}
-        />
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {vacancies.map((post) => (
-            <li key={post.slug}>
-              <PostCard post={post} />
-            </li>
-          ))}
-        </ul>
-      </section>
+      {latestPosts.length > 0 && (
+        <section aria-labelledby="vacancies-title" className="rounded-3xl bg-surface p-5 ring-1 ring-border sm:p-6">
+          <SectionHeading
+            id="vacancies-title"
+            eyebrow="Latest"
+            title="Job vacancies & guides"
+            description="Government and private jobs, with the books to prepare for each test."
+            action={<ViewAll href="/blog" label="See all" />}
+          />
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {latestPosts.map((post) => (
+              <li key={post.slug}>
+                <PostCard post={post} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {examRows.map(({ exam, books: rowBooks }) => (
         <section key={exam.slug} aria-labelledby={`row-${exam.slug}`}>

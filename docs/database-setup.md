@@ -162,3 +162,5 @@ project). `npm run db:check` tells you if something is missing.
 | --- | --- | --- |
 | `20261019000004_place_order.sql` | Phase 8 | The ordering step: re-checks prices and stock, deducts stock safely, creates the order |
 | `20261021000005_bank_transfer.sql` | Payment settings | Adds bank transfer and the bank account fields used in Admin → Settings |
+| `20261021000006_admin_orders.sql` | Phase 10 | Admin order steps: allowed status changes, mark paid, cancel with stock back once, history |
+| `20261021000007_posts_publish_now.sql` | Phase 11 | "Publish now" uses the database clock |

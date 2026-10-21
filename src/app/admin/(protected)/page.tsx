@@ -88,7 +88,6 @@ export default async function AdminOverviewPage() {
       <section className="rounded-2xl bg-surface p-5 ring-1 ring-border">
         <h2 className="mb-2 font-semibold">Coming next</h2>
         <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
-          <li>Posts: publish job vacancies and articles (Phase 11)</li>
           <li>Settings: delivery fees and store details (Phase 12)</li>
         </ul>
         {outOfStock === 0 && (

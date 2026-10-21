@@ -21,7 +21,8 @@
     "e2e:cart": "tsx scripts/e2e/cart.mts",
     "e2e:orders": "tsx scripts/e2e/orders.mts",
     "e2e:payments": "tsx scripts/e2e/payments.mts",
-    "e2e:admin-orders": "tsx scripts/e2e/admin-orders.mts"
+    "e2e:admin-orders": "tsx scripts/e2e/admin-orders.mts",
+    "e2e:posts": "tsx scripts/e2e/admin-posts.mts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.2",

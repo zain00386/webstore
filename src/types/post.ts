@@ -1,30 +1,25 @@
-export type PostBlock =
-  | { type: "h2"; text: string }
-  | { type: "p"; text: string }
-  | { type: "ul"; items: string[] };
-
 export type Post = {
+  id: string;
   slug: string;
   title: string;
   kind: "vacancy" | "blog";
   excerpt: string;
-  body: PostBlock[];
+  /** Markdown (safe subset, see src/lib/posts/markdown.ts). */
+  body: string;
   coverUrl: string | null;
-  /** ISO date (YYYY-MM-DD). */
+  /** Pakistan date (YYYY-MM-DD). */
   publishedAt: string;
-  seoTitle?: string;
-  seoDescription?: string;
-  /** Preview content that must be clearly labelled and never mistaken for a real announcement. */
-  isSample: boolean;
-  vacancy?: {
-    organisation: string;
-    positions: string;
-    location: string;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  /** Exam whose books are shown under the post (catalogue filter slug). */
+  examSlug: string | null;
+  vacancy: {
+    organisation: string | null;
+    positions: string | null;
+    location: string | null;
     /** ISO date (YYYY-MM-DD). */
-    lastDate: string;
-    /** External official link. Validated before rendering. */
-    applyUrl: string;
-    /** Catalogue filter for "related books". */
-    examSlug?: string;
-  };
+    lastDate: string | null;
+    /** External official link. Validated again before rendering. */
+    applyUrl: string | null;
+  } | null;
 };
