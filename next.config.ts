@@ -25,6 +25,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   experimental: {
+    // Hostinger caps an account at ~100 processes/threads; Next would otherwise start a worker per CPU (64 there).
+    cpus: 2,
     // Book covers can be up to 2 MB; leave room for the rest of the form.
     serverActions: { bodySizeLimit: "3mb" },
     // The development disk cache served out-of-date code several times (CSS and
@@ -38,14 +40,6 @@ const nextConfig: NextConfig = {
       // Our own Supabase storage (public buckets only).
       ...(supabaseUrl?.startsWith("https://") ? [new URL(`${supabaseUrl}/storage/v1/object/public/**`)] : []),
     ],
-  },
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
   },
 };
 
