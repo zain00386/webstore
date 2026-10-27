@@ -54,6 +54,18 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* Gentler than animate-pulse (opacity 1 -> 0.5): skeletons breathe, they don't blink. */
+  --animate-skeleton: skeleton 1.8s ease-in-out infinite;
+
+  @keyframes skeleton {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
 }
 
 /*
@@ -104,6 +116,27 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /*
+   * Shell measurements, shared so fixed/sticky UI never covers content.
+   * --tab-bar-height: the phone bottom tab bar (min-h-14) plus the home-indicator inset; 0 on desktop.
+   * Use e.g. `bottom-(--tab-bar-height)` for a mobile sticky CTA, `pb-(--tab-bar-height)` for end-of-page space.
+   * --header-offset: how far anchor/focus targets must sit below the sticky header (2 rows on phones).
+   */
+  --tab-bar-height: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  --header-offset: 8.5rem;
+}
+
+@media (min-width: 48rem) {
+  :root {
+    --header-offset: 5.5rem;
+  }
+}
+
+@media (min-width: 64rem) {
+  :root {
+    --tab-bar-height: 0px;
+  }
 }
 
 .dark {
@@ -144,18 +177,94 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply font-sans;
+    /* Charcoal native checkboxes/radios/range, matching the Checkbox primitive. */
+    accent-color: var(--primary);
+    /* Anchor jumps and focus scrolling land below the sticky header and above the tab bar. */
+    scroll-padding-top: var(--header-offset);
+    scroll-padding-bottom: var(--tab-bar-height);
+    /* No grey flash on tap; interactive elements provide their own :active feedback instead. */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
   body {
     @apply bg-background text-foreground;
+    /* Safety net only: real overflow is fixed at the source. `clip` (not `hidden`) keeps position: sticky working. */
+    overflow-x: clip;
+    /* Landscape phones with a notch (viewport-fit=cover). */
+    padding-inline: env(safe-area-inset-left, 0px) env(safe-area-inset-right, 0px);
+  }
+  ::selection {
+    background-color: color-mix(in oklab, var(--brand) 22%, transparent);
+    color: var(--foreground);
+  }
+  input,
+  textarea,
+  [contenteditable="true"] {
+    caret-color: var(--brand);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+  p,
+  li,
+  figcaption,
+  blockquote {
+    text-wrap: pretty;
+  }
+  /*
+   * Numbers that sit in columns or change in place (prices, totals, counts, phone
+   * numbers, quantities) should use the `tabular-nums` utility so digits don't jitter.
+   * Tables get it by default.
+   */
+  table {
+    font-variant-numeric: tabular-nums;
   }
   button:not(:disabled), [role="button"]:not(:disabled) {
     cursor: pointer;
   }
-  html {
-    @apply font-sans;
-  }
-  /* Visible keyboard focus everywhere, including plain links. */
+  /*
+   * Visible keyboard focus everywhere, including plain links and unstyled buttons.
+   * Components with their own ring (outline-none + focus-visible:ring-*) override this.
+   */
   a:focus-visible,
-  summary:focus-visible {
+  summary:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
     @apply rounded-md outline-2 outline-offset-2 outline-ring;
+  }
+}
+
+/* Smooth in-page scrolling only for people who haven't asked for less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/*
+ * Reduced motion: keep feedback, drop movement. Overlays still fade in/out (so state
+ * changes stay visible) but no longer slide or zoom; spinners and skeletons keep
+ * running (slower, set on the components) because they tell people something is happening.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    --tw-enter-scale: 1;
+    --tw-exit-scale: 1;
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-enter-rotate: 0;
+    --tw-exit-rotate: 0;
+    scroll-behavior: auto;
   }
 }

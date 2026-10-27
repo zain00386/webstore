@@ -31,15 +31,22 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#f4f1ea",
+  width: "device-width",
+  initialScale: 1,
+  // Lets env(safe-area-inset-*) report the iPhone home-indicator/notch insets the tab bar pads for.
+  // Zoom is deliberately NOT restricted (no maximumScale / userScalable).
+  viewportFit: "cover",
 };
 
 /** Shared by the shop and the admin area. Each has its own layout inside. */
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${lexend.variable} h-full antialiased`}>
+    // data-scroll-behavior: Next turns the CSS smooth scrolling off during route changes so new pages start at the top instantly.
+    <html lang="en" data-scroll-behavior="smooth" className={`${lexend.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         {children}
-        <Toaster position="top-center" />
+        {/* Top-centre: clear of the phone tab bar and the floating WhatsApp button; offset below the sticky shop header / admin save bar. */}
+        <Toaster position="top-center" offset={{ top: 72 }} mobileOffset={{ top: 72 }} />
       </body>
     </html>
   );
