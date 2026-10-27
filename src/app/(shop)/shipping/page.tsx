@@ -18,7 +18,7 @@ export default async function ShippingPage() {
   const courier = store.delivery.find((o) => o.id === "courier");
   return (
     <InfoPage title="Shipping & delivery" intro="We deliver books all over Pakistan from our Rawalpindi shop.">
-      <div className="not-prose overflow-hidden rounded-2xl ring-1 ring-border">
+      <div className="not-prose overflow-x-auto rounded-2xl ring-1 ring-border">
         <table className="w-full text-left text-sm">
           <caption className="sr-only">Delivery options and charges</caption>
           <thead className="bg-muted">
@@ -32,7 +32,7 @@ export default async function ShippingPage() {
             {store.delivery.map((o) => (
               <tr key={o.id}>
                 <th scope="row" className="p-3 font-medium">{o.label}</th>
-                <td className="p-3">{formatPKR(o.charge)}</td>
+                <td className="p-3 whitespace-nowrap tabular-nums">{formatPKR(o.charge)}</td>
                 <td className="p-3">
                   {o.codAllowed ? `Cash on Delivery${prepaid ? `, or in advance (${prepaid})` : ""}` : `In advance${prepaid ? ` (${prepaid})` : ""}`}
                 </td>

@@ -3,10 +3,13 @@
 import { useSyncExternalStore } from "react";
 import Link from "next/link";
 import { ChevronRight, PackageSearch, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { whatsappLink } from "@/lib/format";
 import {
+  addRecentOrder,
   forgetOrder,
   orderPath,
+  readRecentOrders,
   RECENT_ORDERS_KEY,
   sanitizeRecentOrders,
   type RecentOrder,
@@ -81,7 +84,7 @@ export function RecentOrdersList({ phoneDisplay, phoneE164 }: { phoneDisplay: st
     <ul className="divide-y divide-border rounded-3xl bg-card ring-1 ring-border">
       {orders.map((o) => (
         <li key={o.orderNumber} className="flex items-center gap-2 p-2 pl-4">
-          <Link href={orderPath(o)} className="flex min-h-12 flex-1 items-center justify-between gap-3 rounded-xl px-1 hover:bg-muted/50">
+          <Link href={orderPath(o)} className="flex min-h-12 flex-1 items-center justify-between gap-3 rounded-xl px-1 transition-colors duration-150 hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
             <span>
               <span className="block font-semibold tracking-wide">{o.orderNumber}</span>
               <span className="block text-xs text-muted-foreground">
@@ -100,6 +103,20 @@ export function RecentOrdersList({ phoneDisplay, phoneE164 }: { phoneDisplay: st
             onClick={() => {
               forgetOrder(o.orderNumber);
               listeners.forEach((l) => l());
+              toast(`Removed ${o.orderNumber} from this device`, {
+                action: {
+                  label: "Undo",
+                  onClick: () => {
+                    // Put back the same entry (with its original date), not a fresh one.
+                    try {
+                      window.localStorage.setItem(RECENT_ORDERS_KEY, JSON.stringify(addRecentOrder(readRecentOrders(), o)));
+                    } catch {
+                      // storage blocked
+                    }
+                    listeners.forEach((l) => l());
+                  },
+                },
+              });
             }}
           >
             <Trash2 aria-hidden />

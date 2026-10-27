@@ -14,21 +14,26 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
     <CartProvider>
       <a
         href="#main"
-        className="sr-only z-50 rounded-full bg-primary px-4 py-2 text-primary-foreground focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
+        className="sr-only z-[60] rounded-full bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-lg focus:not-sr-only focus:fixed focus:top-2 focus:left-2"
       >
         Skip to content
       </a>
       <AnnouncementBar />
       <div className="flex flex-1">
-        <aside className="sticky top-0 hidden h-svh w-24 shrink-0 flex-col items-center gap-8 border-r border-border bg-surface py-5 lg:flex">
+        <aside
+          aria-label="Site"
+          className="sticky top-0 hidden h-svh w-24 shrink-0 flex-col items-center gap-8 overflow-y-auto border-r border-border bg-surface py-5 lg:flex"
+        >
           <Logo compact />
           <Suspense fallback={<SideNavList pathname={null} />}>
             <SideNav />
           </Suspense>
         </aside>
-        <div className="flex min-w-0 flex-1 flex-col">
+        {/* Bottom padding = phone tab bar + home-indicator inset, so the footer's last line is never hidden under it. */}
+        <div className="flex min-w-0 flex-1 flex-col pb-(--tab-bar-height)">
           <SiteHeader />
-          <main id="main" className="flex-1 pb-20 lg:pb-0">
+          {/* tabIndex -1: the skip link moves keyboard focus here, not just the scroll position. */}
+          <main id="main" tabIndex={-1} className="flex-1 outline-none">
             {children}
           </main>
           <SiteFooter />

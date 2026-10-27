@@ -1,9 +1,8 @@
 "use client";
 
-import Form from "next/form";
-import Link from "next/link";
 import type { CatalogQuery } from "@/lib/catalog/query";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/submit-button";
+import { CatalogLink, formHref, useCatalogNavigation } from "./catalog-navigation";
 
 export type FilterOption = { value: string; label: string; count?: number };
 export type FilterGroup = { title: string; options: FilterOption[] };
@@ -17,17 +16,24 @@ type FilterFormProps = {
   idPrefix: string;
   /** Submit as soon as a checkbox/radio changes (desktop). */
   autoSubmit?: boolean;
+  /** Keep Apply/Clear pinned to the bottom of a scrolling sheet (phone filters). */
+  stickyActions?: boolean;
 };
 
 const fieldsetLegend = "mb-2 text-sm font-semibold";
-const optionRow = "flex min-h-9 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-sm hover:bg-muted";
-const input = "size-4 accent-[var(--brand)]";
+// 44px rows on touch screens, compact on desktop.
+const optionRow =
+  "flex min-h-11 cursor-pointer items-center gap-2.5 rounded-lg px-2 text-sm transition-colors duration-150 hover:bg-muted lg:min-h-9";
+const input = "size-4 shrink-0 accent-[var(--brand)]";
+const optionLabel = "min-w-0 flex-1 break-words";
 
 /**
  * Plain GET form: filters live in the URL (shareable, back button works) and
  * still work if JavaScript fails. All values are re-validated on the server.
+ * With JavaScript, results load in a transition so the page shows it's working.
  */
-export function FilterForm({ query, exams, categories, publishers = [], idPrefix, autoSubmit }: FilterFormProps) {
+export function FilterForm({ query, exams, categories, publishers = [], idPrefix, autoSubmit, stickyActions }: FilterFormProps) {
+  const { pending, navigate } = useCatalogNavigation();
   const submitOnChange = autoSubmit
     ? (e: React.ChangeEvent<HTMLFormElement>) => {
         if (e.target instanceof HTMLInputElement && e.target.type !== "number") e.currentTarget.requestSubmit();
@@ -35,7 +41,16 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
     : undefined;
 
   return (
-    <Form action="/books" onChange={submitOnChange} className="space-y-6">
+    <form
+      action="/books"
+      onChange={submitOnChange}
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate(formHref(e.currentTarget));
+      }}
+      aria-busy={pending || undefined}
+      className="space-y-6"
+    >
       {query.q && <input type="hidden" name="q" value={query.q} />}
       {query.sort !== "newest" && <input type="hidden" name="sort" value={query.sort} />}
 
@@ -56,8 +71,8 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
             {group.options.map((e) => (
               <label key={e.value} className={optionRow}>
                 <input type="radio" name="exam" value={e.value} defaultChecked={query.exam === e.value} className={input} />
-                <span className="flex-1">{e.label}</span>
-                {e.count != null && <span className="text-xs text-muted-foreground">{e.count}</span>}
+                <span className={optionLabel}>{e.label}</span>
+                {e.count != null && <span className="text-xs text-muted-foreground tabular-nums">{e.count}</span>}
               </label>
             ))}
           </div>
@@ -75,8 +90,8 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
               defaultChecked={query.category.includes(c.value)}
               className={input}
             />
-            <span className="flex-1">{c.label}</span>
-            {c.count != null && <span className="text-xs text-muted-foreground">{c.count}</span>}
+            <span className={optionLabel}>{c.label}</span>
+            {c.count != null && <span className="text-xs text-muted-foreground tabular-nums">{c.count}</span>}
           </label>
         ))}
       </fieldset>
@@ -93,8 +108,8 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
                 defaultChecked={query.publisher.includes(p.value)}
                 className={input}
               />
-              <span className="flex-1">{p.label}</span>
-              {p.count != null && <span className="text-xs text-muted-foreground">{p.count}</span>}
+              <span className={optionLabel}>{p.label}</span>
+              {p.count != null && <span className="text-xs text-muted-foreground tabular-nums">{p.count}</span>}
             </label>
           ))}
         </fieldset>
@@ -116,7 +131,7 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
             min={0}
             placeholder="Min"
             defaultValue={query.min ?? ""}
-            className="h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm"
+            className="h-11 w-full min-w-0 rounded-lg border border-input bg-surface px-3 text-sm lg:h-10"
           />
           <span aria-hidden>–</span>
           <label htmlFor={`${idPrefix}-max`} className="sr-only">
@@ -130,19 +145,28 @@ export function FilterForm({ query, exams, categories, publishers = [], idPrefix
             min={0}
             placeholder="Max"
             defaultValue={query.max ?? ""}
-            className="h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm"
+            className="h-11 w-full min-w-0 rounded-lg border border-input bg-surface px-3 text-sm lg:h-10"
           />
         </div>
       </fieldset>
 
-      <div className="flex gap-2">
-        <Button type="submit" className="flex-1">
+      <div
+        className={
+          stickyActions
+            ? "sticky bottom-0 -mx-5 flex gap-2 border-t border-border bg-popover px-5 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]"
+            : "flex gap-2"
+        }
+      >
+        <SubmitButton pending={pending} pendingLabel="Applying…" className="h-11 min-w-0 flex-1 lg:h-10">
           Apply filters
-        </Button>
-        <Button asChild variant="outline">
-          <Link href="/books">Clear</Link>
-        </Button>
+        </SubmitButton>
+        <CatalogLink
+          href="/books"
+          className="inline-flex h-11 items-center justify-center rounded-full border border-border bg-background px-4 text-sm font-medium transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none lg:h-10"
+        >
+          Clear
+        </CatalogLink>
       </div>
-    </Form>
+    </form>
   );
 }

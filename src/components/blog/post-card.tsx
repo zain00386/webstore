@@ -32,7 +32,7 @@ export function PostCard({ post }: { post: Post }) {
         <Icon className="size-5 shrink-0 text-muted-foreground" aria-hidden />
       </div>
       <h3 className="text-base leading-snug font-semibold">
-        <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0 after:rounded-2xl">
+        <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none focus-visible:after:ring-3 focus-visible:after:ring-ring/50 focus-visible:after:ring-inset">
           {post.title}
         </Link>
       </h3>

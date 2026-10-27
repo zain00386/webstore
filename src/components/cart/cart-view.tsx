@@ -12,6 +12,7 @@ import { QuantityStepper } from "@/components/book/quantity-stepper";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { CartNotices } from "./cart-notices";
 import { useCart } from "./cart-provider";
 import { useCartCheck } from "./use-cart-check";
@@ -130,7 +131,7 @@ export function CartView({ cheapestDelivery }: { cheapestDelivery: number | null
                       onChange={(q) => setQuantity(line.slug, q)}
                       max={Math.min(line.maxQuantity, MAX_PER_LINE)}
                     />
-                    <p className="text-sm font-semibold">
+                    <p className="shrink-0 text-sm font-semibold whitespace-nowrap tabular-nums">
                       {formatPKR(line.price * line.quantity)}
                     </p>
                   </div>
@@ -153,7 +154,7 @@ export function CartView({ cheapestDelivery }: { cheapestDelivery: number | null
             <dt>
               Subtotal ({count} {count === 1 ? "book" : "books"})
             </dt>
-            <dd className="font-semibold">{formatPKR(subtotal)}</dd>
+            <dd className="font-semibold whitespace-nowrap tabular-nums">{formatPKR(subtotal)}</dd>
           </div>
           <div className="flex justify-between text-muted-foreground">
             <dt>Delivery</dt>
@@ -169,6 +170,7 @@ export function CartView({ cheapestDelivery }: { cheapestDelivery: number | null
           </Button>
         ) : (
           <Button size="pill" className="mt-5 w-full" disabled>
+            {check.status === "checking" && <Spinner />}
             {check.status === "checking"
               ? "Checking your cart…"
               : blocking

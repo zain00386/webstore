@@ -12,8 +12,9 @@ export async function SiteFooter() {
   const store = await getStoreInfo();
   return (
     <footer className="mt-16 border-t border-border bg-surface">
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-5 lg:px-8">
-        <div className="space-y-3">
+      {/* 5 columns only from xl: at lg the sidebar leaves ~860px, too tight for five. */}
+      <div className="mx-auto grid max-w-7xl gap-x-8 gap-y-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-3 lg:px-8 xl:grid-cols-5">
+        <div className="space-y-3 sm:col-span-2 lg:col-span-1">
           <Logo />
           <p className="text-sm text-muted-foreground">
             Official Rawalpindi branch of Dogar Publishers. Genuine books from all publishers.
@@ -36,7 +37,7 @@ export async function SiteFooter() {
                 {store.phones.map((p, i) => (
                   <span key={p}>
                     {i > 0 && ", "}
-                    <a href={telHref(p)} className="hover:text-foreground">
+                    <a href={telHref(p)} className="whitespace-nowrap tabular-nums hover:text-foreground">
                       {p}
                     </a>
                   </span>
@@ -66,7 +67,7 @@ export async function SiteFooter() {
             {store.delivery.map((option) => (
               <li key={option.id}>
                 <span className="font-medium text-foreground">
-                  {option.label}: {formatPKR(option.charge)}
+                  {option.label}: <span className="whitespace-nowrap tabular-nums">{formatPKR(option.charge)}</span>
                 </span>
                 <br />
                 {option.note}
@@ -95,7 +96,7 @@ export async function SiteFooter() {
 
         <div>
           <h2 className="mb-3 text-sm font-semibold">Help</h2>
-          <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground lg:grid-cols-1">
+          <ul className="grid grid-cols-2 gap-2 text-sm text-muted-foreground xl:grid-cols-1">
             {footerLinks.map((link) => (
               <li key={link.href}>
                 <Link href={link.href} className="hover:text-foreground">
@@ -106,7 +107,8 @@ export async function SiteFooter() {
           </ul>
         </div>
       </div>
-      <div className="border-t border-border px-4 py-4 text-center text-xs text-muted-foreground">
+      {/* Extra bottom space on phones so the floating WhatsApp button never sits on this line. */}
+      <div className="border-t border-border px-4 pt-4 pb-20 text-center text-xs text-muted-foreground lg:pb-4">
         {siteConfig.fullName}, an official branch of Dogar Publishers.
       </div>
     </footer>

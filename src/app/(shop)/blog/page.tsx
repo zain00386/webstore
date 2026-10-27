@@ -68,7 +68,7 @@ async function PostList({ kind, page }: { kind?: "vacancy" | "blog"; page: numbe
               href={hrefFor(t.value)}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "inline-flex h-10 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border hover:bg-muted",
+                "inline-flex h-11 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:h-10",
                 active && "bg-primary text-primary-foreground ring-primary hover:bg-primary",
               )}
             >

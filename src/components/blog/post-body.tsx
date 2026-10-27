@@ -5,7 +5,7 @@ import { parseMarkdown, type Inline } from "@/lib/posts/markdown";
 export function PostBody({ markdown }: { markdown: string }) {
   const blocks = parseMarkdown(markdown);
   return (
-    <div className="space-y-4 leading-relaxed text-foreground/85">
+    <div className="space-y-4 leading-relaxed wrap-anywhere text-foreground/85">
       {blocks.map((b, i) => {
         if ("content" in b) {
           if (b.type === "h2") return <h2 key={i} className="pt-4 text-xl font-semibold text-foreground"><Inlines items={b.content} /></h2>;

@@ -14,7 +14,7 @@ export function Price({ price, compareAt, size = "default", className }: PricePr
     <p className={cn("flex flex-wrap items-baseline gap-x-2 gap-y-1", className)}>
       <span
         className={cn(
-          "font-semibold",
+          "font-semibold whitespace-nowrap tabular-nums",
           size === "lg" ? "text-2xl" : "text-base",
           discount && "text-brand",
         )}
@@ -23,7 +23,7 @@ export function Price({ price, compareAt, size = "default", className }: PricePr
       </span>
       {discount && compareAt && (
         <>
-          <span className="text-sm text-muted-foreground line-through">
+          <span className="text-sm whitespace-nowrap text-muted-foreground tabular-nums line-through">
             <span className="sr-only">Was </span>
             {formatPKR(compareAt)}
           </span>

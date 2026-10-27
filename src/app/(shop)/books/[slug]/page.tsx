@@ -65,8 +65,8 @@ function BookDetailSkeleton() {
     <div className="mx-auto max-w-7xl px-4 py-8 lg:px-8" role="status">
       <span className="sr-only">Loading book…</span>
       <Skeleton className="mb-5 h-4 w-64" />
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-12">
-        <Skeleton className="aspect-[3/4] w-full rounded-3xl" />
+      <div className="grid gap-8 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-12">
+        <Skeleton className="mx-auto aspect-[3/4] w-full max-w-sm rounded-3xl md:max-w-none" />
         <div className="space-y-4">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-9 w-3/4" />
@@ -121,7 +121,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
         ]}
       />
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,420px)_1fr] lg:gap-12">
+      <div className="grid gap-8 md:grid-cols-[minmax(0,320px)_minmax(0,1fr)] lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-12">
         <BookGallery images={book.images} title={book.title} />
 
         <div className="space-y-5">
@@ -131,7 +131,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
               <Link
                 key={e.slug}
                 href={`/books?exam=${e.slug}`}
-                className="inline-flex h-5 items-center rounded-full bg-secondary px-2 text-xs font-medium hover:bg-muted"
+                className="inline-flex min-h-9 items-center rounded-full bg-secondary px-3 text-xs font-medium transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 {e.label}
               </Link>
@@ -185,7 +185,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
         </div>
       </div>
 
-      <div className="mt-12 grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="mt-12 grid gap-8 lg:grid-cols-[minmax(0,1fr)_320px]">
         <section aria-labelledby="about-book">
           <h2 id="about-book" className="mb-4 text-xl font-semibold">
             About this book
@@ -206,7 +206,7 @@ async function BookDetail({ params }: { params: PageProps<"/books/[slug]">["para
             {details.map(([label, value]) => (
               <div key={label} className="flex justify-between gap-4 py-2">
                 <dt className="text-muted-foreground">{label}</dt>
-                <dd className="text-right font-medium">{value}</dd>
+                <dd className="min-w-0 text-right font-medium break-words">{value}</dd>
               </div>
             ))}
           </dl>

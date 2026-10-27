@@ -26,7 +26,7 @@ export async function AnnouncementBar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label={`${label} (opens in a new tab)`}
-                className="flex size-8 items-center justify-center rounded-full hover:bg-primary-foreground/15"
+                className="-my-1.5 flex size-11 items-center justify-center rounded-full hover:bg-primary-foreground/15 sm:my-0 sm:size-8"
               >
                 <Icon className="size-4" />
               </a>

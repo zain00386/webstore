@@ -27,8 +27,8 @@ export function MobileFilters(props: {
           <SheetTitle>Filter books</SheetTitle>
           <SheetDescription>Choose filters, then tap Apply.</SheetDescription>
         </SheetHeader>
-        <div className="px-5 pb-8">
-          <FilterForm {...formProps} idPrefix="mobile-filter" />
+        <div className="px-5">
+          <FilterForm {...formProps} idPrefix="mobile-filter" stickyActions />
         </div>
       </SheetContent>
     </Sheet>

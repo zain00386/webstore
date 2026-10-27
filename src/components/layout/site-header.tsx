@@ -30,7 +30,8 @@ export async function SiteHeader() {
               </span>
             </span>
           </div>
-          <Button asChild variant="outline" size="icon" className="text-whatsapp">
+          {/* Phones have the floating WhatsApp button instead, leaving room for the logo and cart. */}
+          <Button asChild variant="outline" size="icon" className="hidden text-whatsapp sm:inline-flex">
             <a
               href={whatsappLink(store.phoneE164)}
               target="_blank"

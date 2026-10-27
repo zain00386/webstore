@@ -27,7 +27,7 @@ export function MobileTabBarList({ pathname }: { pathname: string | null }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-14 flex-col items-center justify-center gap-1 text-[0.7rem] font-medium text-muted-foreground",
+                  "flex min-h-14 flex-col items-center justify-center gap-1 text-[0.7rem] font-medium text-muted-foreground transition-colors duration-150 focus-visible:ring-inset focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
                   active && "text-brand",
                 )}
               >

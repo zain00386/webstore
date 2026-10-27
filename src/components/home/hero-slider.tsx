@@ -74,15 +74,17 @@ export function HeroSlider({
         if (!e.currentTarget.contains(e.relatedTarget)) setHovering(false);
       }}
     >
-      <div className="relative">
+      {/* All slides share one grid cell, so the tallest sets the height and autoplay never shifts the page. */}
+      <div className="grid">
         {slides.map((slide, i) => (
           <div
             key={slide.id}
             role="group"
             aria-roledescription="slide"
             aria-label={`${i + 1} of ${count}: ${slide.title}`}
-            hidden={i !== index}
-            className="grid items-center gap-6 p-6 sm:p-10 lg:grid-cols-[1.3fr_1fr]"
+            aria-hidden={i !== index || undefined}
+            inert={i !== index}
+            className={cn("grid items-center gap-6 p-6 [grid-area:1/1] sm:p-10 lg:grid-cols-[1.3fr_1fr]", i !== index && "invisible")}
           >
             <div className="space-y-4">
               <span className="inline-flex rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold tracking-wide text-brand uppercase">
@@ -131,7 +133,7 @@ export function HeroSlider({
                     <a
                       key={p}
                       href={`tel:${p.replace(/[^\d+]/g, "")}`}
-                      className="inline-flex min-h-6 items-center tabular-nums hover:underline"
+                      className="-my-2.5 inline-flex min-h-11 items-center tabular-nums hover:underline"
                     >
                       {p}
                     </a>
@@ -140,7 +142,7 @@ export function HeroSlider({
                     href={whatsappLink(phoneE164)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex min-h-6 items-center gap-1 text-whatsapp tabular-nums hover:underline"
+                    className="-my-2.5 inline-flex min-h-11 items-center gap-1 text-whatsapp tabular-nums hover:underline"
                   >
                     <WhatsAppIcon className="size-4" /> {whatsappDisplay}
                   </a>
@@ -186,7 +188,7 @@ export function HeroSlider({
                 onClick={() => go(i)}
                 aria-label={`Show slide ${i + 1}: ${s.title}`}
                 aria-current={i === index ? "true" : undefined}
-                className="flex size-10 items-center justify-center rounded-full"
+                className="flex size-10 items-center justify-center rounded-full transition-colors duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span
                   className={cn(

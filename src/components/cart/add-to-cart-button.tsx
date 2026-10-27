@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { ShoppingBag } from "lucide-react";
 import { toast } from "sonner";
-import type { CartItemInput } from "@/lib/cart/cart";
+import { MAX_PER_LINE, type CartItemInput } from "@/lib/cart/cart";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCart } from "./cart-provider";
@@ -28,7 +28,7 @@ export function AddToCartButton({ item, quantity = 1, className, size = "default
   }
 
   const inCart = lines.find((l) => l.slug === item.slug)?.quantity ?? 0;
-  const atLimit = inCart >= item.maxQuantity;
+  const atLimit = inCart >= Math.min(item.maxQuantity, MAX_PER_LINE);
 
   return (
     <Button

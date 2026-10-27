@@ -9,7 +9,7 @@ export function Description({ blocks }: { blocks: string[] }) {
   }
 
   return (
-    <div className="space-y-3 text-sm leading-relaxed text-foreground/85">
+    <div className="space-y-3 text-sm leading-relaxed wrap-anywhere text-foreground/85">
       {groups.map((g, i) =>
         g.type === "ul" ? (
           <ul key={i} className="list-disc space-y-1 pl-5">

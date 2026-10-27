@@ -199,7 +199,7 @@ function OrderDetails({ order, payment }: { order: CustomerOrder; payment: Payme
               <span>
                 {i.title} <span className="text-muted-foreground">× {i.quantity}</span>
               </span>
-              <span className="font-medium tabular-nums">{formatPKR(i.lineTotal)}</span>
+              <span className="shrink-0 font-medium whitespace-nowrap tabular-nums">{formatPKR(i.lineTotal)}</span>
             </li>
           ))}
         </ul>

@@ -8,6 +8,7 @@ import { categoryCounts, examCounts as countExams, valueOptions } from "@/lib/ca
 import { getCatalogState, type Catalog } from "@/lib/db/catalog";
 import { BookGridSkeleton } from "@/components/book/book-card-skeleton";
 import { BookGrid } from "@/components/book/shop-book-card";
+import { CatalogLink, CatalogNavigation, CatalogResults } from "@/components/catalog/catalog-navigation";
 import { FilterForm } from "@/components/catalog/filter-form";
 import { MobileFilters } from "@/components/catalog/mobile-filters";
 import { SortSelect } from "@/components/catalog/sort-select";
@@ -16,6 +17,7 @@ import { SetupNotice } from "@/components/feedback/setup-notice";
 import { Breadcrumbs } from "@/components/layout/breadcrumbs";
 import { Pagination } from "@/components/layout/pagination";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const DEFAULT_DESCRIPTION =
   "Browse CSS, PMS, FPSC, PPSC, NTS, MDCAT, ECAT, ISSB, job test, law and academic books. Delivery all over Pakistan.";
@@ -62,7 +64,10 @@ function CatalogSkeleton() {
   return (
     <>
       <h1 className="mb-6 text-3xl font-semibold tracking-tight">All books</h1>
-      <BookGridSkeleton count={10} />
+      <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
+        <Skeleton className="hidden h-96 rounded-2xl lg:block" />
+        <BookGridSkeleton count={8} layout="sidebar" />
+      </div>
     </>
   );
 }
@@ -129,10 +134,10 @@ function CatalogView({ catalog, query }: { catalog: Catalog; query: CatalogQuery
   const filterProps = { query, exams, categories: categoryOptions, publishers };
 
   return (
-    <>
+    <CatalogNavigation>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">{heading}</h1>
+        <div className="min-w-0">
+          <h1 className="text-3xl font-semibold tracking-tight break-words">{heading}</h1>
           <p className="mt-1 text-sm text-muted-foreground" aria-live="polite">
             {result.total} {result.total === 1 ? "book" : "books"}
           </p>
@@ -147,40 +152,43 @@ function CatalogView({ catalog, query }: { catalog: Catalog; query: CatalogQuery
       {chips.length > 0 && (
         <ul className="mb-6 flex flex-wrap gap-2" aria-label="Active filters">
           {chips.map((chip) => (
-            <li key={chip.href + chip.label}>
-              <Link
+            <li key={chip.href + chip.label} className="min-w-0 max-w-full">
+              <CatalogLink
                 href={chip.href}
-                className="inline-flex h-8 items-center gap-1.5 rounded-full bg-secondary px-3 text-xs font-medium hover:bg-muted"
+                className="inline-flex h-11 max-w-full items-center gap-1.5 rounded-full bg-secondary px-3 text-xs font-medium transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:h-8"
               >
-                {chip.label}
-                <X className="size-3.5" aria-hidden />
+                <span className="truncate">{chip.label}</span>
+                <X className="size-3.5 shrink-0" aria-hidden />
                 <span className="sr-only">Remove filter</span>
-              </Link>
+              </CatalogLink>
             </li>
           ))}
           <li>
-            <Link href="/books" className="inline-flex h-8 items-center px-2 text-xs font-medium underline">
+            <CatalogLink
+              href="/books"
+              className="inline-flex h-11 items-center rounded-full px-2 text-xs font-medium underline focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:h-8"
+            >
               Clear all
-            </Link>
+            </CatalogLink>
           </li>
         </ul>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-[240px_1fr]">
+      <div className="grid gap-8 lg:grid-cols-[240px_minmax(0,1fr)]">
         <aside className="hidden lg:block" aria-label="Filters">
           <div className="sticky top-24 max-h-[calc(100svh-7rem)] overflow-y-auto rounded-2xl bg-surface p-4 ring-1 ring-border">
             <FilterForm key={`d-${filterKey}`} {...filterProps} idPrefix="filter" autoSubmit />
           </div>
         </aside>
 
-        <section aria-labelledby="results-title">
+        <CatalogResults aria-labelledby="results-title">
           <h2 id="results-title" className="sr-only">
             Books
           </h2>
           {result.books.length > 0 ? (
             <>
-              <BookGrid books={result.books} priorityCount={4} />
-              <Pagination page={result.page} pageCount={result.pageCount} hrefFor={(page) => catalogHref(query, { page })} />
+              <BookGrid books={result.books} priorityCount={4} layout="sidebar" />
+              <Pagination page={result.page} pageCount={result.pageCount} hrefFor={(page) => catalogHref(query, { page })} link={CatalogLink} />
             </>
           ) : (
             <EmptyState
@@ -194,8 +202,8 @@ function CatalogView({ catalog, query }: { catalog: Catalog; query: CatalogQuery
               }
             />
           )}
-        </section>
+        </CatalogResults>
       </div>
-    </>
+    </CatalogNavigation>
   );
 }

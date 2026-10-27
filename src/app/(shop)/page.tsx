@@ -85,12 +85,12 @@ export default async function HomePage() {
         <h2 id="exams-title" className="mb-3 text-sm font-semibold text-muted-foreground">
           Shop by exam
         </h2>
-        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 lg:mx-0 lg:flex-wrap lg:px-0">
+        <ul className="-mx-4 flex gap-2 overflow-x-auto px-4 pt-1 pb-2 lg:mx-0 lg:flex-wrap lg:px-0">
           {examShortcuts.map((exam) => (
             <li key={exam.slug} className="shrink-0">
               <Link
                 href={`/books?exam=${exam.slug}`}
-                className="inline-flex h-10 items-center rounded-full border border-border bg-surface px-4 text-sm font-medium hover:bg-muted"
+                className="inline-flex h-11 items-center rounded-full border border-border bg-surface px-4 text-sm font-medium transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:h-10"
               >
                 {exam.label}
               </Link>
@@ -99,7 +99,7 @@ export default async function HomePage() {
           <li className="shrink-0">
             <Link
               href="/exams"
-              className="inline-flex h-10 items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/85"
+              className="inline-flex h-11 items-center gap-1 rounded-full bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors duration-150 hover:bg-primary/85 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:h-10"
             >
               All exams <ArrowRight className="size-4" aria-hidden />
             </Link>
@@ -155,7 +155,7 @@ export default async function HomePage() {
             <li key={slug}>
               <Link
                 href={`/books?category=${slug}`}
-                className="flex h-full items-center gap-3 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow hover:shadow-md"
+                className="flex h-full items-center gap-3 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow duration-150 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
               >
                 <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
                   <Icon className="size-5" aria-hidden />

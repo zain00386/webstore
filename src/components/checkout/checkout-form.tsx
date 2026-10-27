@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   BookOpen,
   Info,
-  LoaderCircle,
   ShoppingBag,
 } from "lucide-react";
 import type { DeliveryOption } from "@/lib/store-info";
@@ -41,6 +40,7 @@ import { placeOrder } from "@/app/(shop)/checkout/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
 import { ChoiceCard } from "./choice-card";
 import { WhatsAppIcon } from "@/components/icons/whatsapp-icon";
@@ -98,6 +98,8 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
   const lines = purchasableLines(allLines);
   const router = useRouter();
   const [placing, setPlacing] = useState(false);
+  // Set just before the cart is emptied, so "Your cart is empty" doesn't flash while the order page loads.
+  const [placed, setPlaced] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   // One key + secret per order attempt: a double-click or retry sends the SAME
   // ones, so the server returns the same order instead of creating a second.
@@ -126,6 +128,15 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
 
   if (!ready) {
     return <Skeleton className="h-96 w-full rounded-2xl" />;
+  }
+
+  if (placed) {
+    return (
+      <div role="status" className="flex items-center justify-center gap-2 rounded-2xl bg-surface p-10 text-sm font-medium ring-1 ring-border">
+        <Spinner className="size-5" />
+        Order placed — opening your order…
+      </div>
+    );
   }
 
   if (allLines.length === 0) {
@@ -168,6 +179,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
       if (result.ok) {
         succeeded = true;
         rememberOrder(result.orderNumber, result.token);
+        setPlaced(true);
         writeCart([]); // order placed: empty the cart
         router.push(orderPath(result)); // token is base64url: safe in a URL as-is
         return; // the button stays disabled while the confirmation page loads
@@ -175,11 +187,13 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
 
       attempt.current = null; // nothing was ordered: the next try is a new attempt
       setSubmitError(result.error);
-      for (const [field, message] of Object.entries(result.fieldErrors ?? {})) {
+      const fieldErrors = Object.entries(result.fieldErrors ?? {});
+      for (const [field, message] of fieldErrors) {
         if (field in data) setError(field as keyof CheckoutData, { message });
       }
       if (result.cartChanged) await check.check(); // show exactly what changed
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      // The error itself shows beside the button; only jump up when what needs fixing is up there.
+      if (fieldErrors.length > 0 || result.cartChanged) window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       // Network problem: the order may or may not have reached us. Retrying keeps the
       // same attempt, which returns the same order: never a second one.
@@ -195,7 +209,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
     <form
       onSubmit={(e) => void handleSubmit(onSubmit)(e)}
       noValidate
-      className="grid gap-8 lg:grid-cols-[1fr_380px]"
+      className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]"
     >
       <div className="lg:col-span-2">
         <CartNotices check={check} blocking={blocking} />
@@ -279,7 +293,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
             control={control}
             name="deliveryMethod"
             render={({ field }) => (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 {deliveryOptions.map((o) => (
                   <ChoiceCard
                     key={o.id}
@@ -315,7 +329,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
             control={control}
             name="paymentMethod"
             render={({ field }) => (
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
                 {offered.map((m) => {
                   const allowed = isPaymentAllowed(delivery, m);
                   return (
@@ -382,7 +396,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
                   Qty {l.quantity}
                 </span>
               </span>
-              <span className="font-medium">
+              <span className="shrink-0 font-medium whitespace-nowrap tabular-nums">
                 {formatPKR(l.price * l.quantity)}
               </span>
             </li>
@@ -391,15 +405,15 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
         <dl className="space-y-2 border-t border-border pt-4 text-sm">
           <div className="flex justify-between">
             <dt>Subtotal</dt>
-            <dd>{formatPKR(subtotal)}</dd>
+            <dd className="whitespace-nowrap tabular-nums">{formatPKR(subtotal)}</dd>
           </div>
           <div className="flex justify-between">
             <dt>Delivery</dt>
-            <dd>{formatPKR(shipping)}</dd>
+            <dd className="whitespace-nowrap tabular-nums">{formatPKR(shipping)}</dd>
           </div>
           <div className="flex justify-between border-t border-border pt-2 text-base font-semibold">
             <dt>Total</dt>
-            <dd>{formatPKR(subtotal + shipping)}</dd>
+            <dd className="whitespace-nowrap tabular-nums">{formatPKR(subtotal + shipping)}</dd>
           </div>
         </dl>
 
@@ -415,9 +429,7 @@ export function CheckoutForm({ delivery: deliveryOptions, payments, phoneE164 }:
             lines.length === 0
           }
         >
-          {placing ? (
-            <LoaderCircle className="animate-spin" aria-hidden />
-          ) : null}
+          {placing ? <Spinner /> : null}
           {placing
             ? "Placing your order…"
             : check.status === "checking"

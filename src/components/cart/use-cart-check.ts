@@ -31,7 +31,8 @@ export function useCartCheck(ready: boolean): CartCheck {
         setStatus("ok");
         return true;
       }
-      setStatus("checking");
+      // Re-checks after a good result (tab focus, Place order) run quietly: the last result stays on screen.
+      setStatus((s) => (s === "ok" ? s : "checking"));
       const res = await checkCartBooks(cartRefs(before));
       if (!res.ok) {
         setError(res.error);

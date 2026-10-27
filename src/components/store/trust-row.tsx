@@ -43,7 +43,7 @@ export async function TrustRow() {
           return (
             <li key={title}>
               {href ? (
-                <Link href={href} className="flex h-full items-start gap-4 rounded-2xl bg-muted/70 p-5 hover:bg-muted">
+                <Link href={href} className="flex h-full items-start gap-4 rounded-2xl bg-muted/70 p-5 transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
                   {body}
                 </Link>
               ) : (

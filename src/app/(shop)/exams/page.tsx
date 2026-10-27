@@ -19,7 +19,7 @@ function ExamLink({ href, label, count }: { href: string; label: string; count: 
   return (
     <Link
       href={href}
-      className="flex min-h-11 items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm hover:bg-muted"
+      className="flex min-h-11 items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm transition-colors duration-150 hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
     >
       <span className="font-medium">{label}</span>
       <span className="text-xs text-muted-foreground">{count}</span>
@@ -62,7 +62,7 @@ export default async function ExamsPage() {
               <li key={e.slug}>
                 <Link
                   href={`/books?exam=${e.slug}`}
-                  className="flex h-full flex-col justify-between gap-2 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow hover:shadow-md"
+                  className="flex h-full flex-col justify-between gap-2 rounded-2xl bg-card p-4 ring-1 ring-border transition-shadow duration-150 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   <span className="font-semibold">{e.label}</span>
                   <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">

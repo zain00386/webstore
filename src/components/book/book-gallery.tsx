@@ -11,7 +11,7 @@ export function BookGallery({ images, title }: { images: string[]; title: string
   const current = images[active];
 
   return (
-    <div className="space-y-3">
+    <div className="mx-auto w-full max-w-sm space-y-3 md:max-w-none">
       <div className="relative aspect-[3/4] overflow-hidden rounded-3xl bg-surface ring-1 ring-border">
         <CoverImage
           key={current ?? "none"}
@@ -19,7 +19,7 @@ export function BookGallery({ images, title }: { images: string[]; title: string
           alt={images.length > 1 ? `${title}, photo ${active + 1} of ${images.length}` : `Cover of ${title}`}
           fill
           priority={active === 0}
-          sizes="(min-width: 1024px) 420px, 100vw"
+          sizes="(min-width: 1024px) 420px, (min-width: 768px) 320px, 384px"
           className="object-contain p-6 drop-shadow-xl"
         />
       </div>
@@ -33,7 +33,7 @@ export function BookGallery({ images, title }: { images: string[]; title: string
                 aria-label={`Show photo ${i + 1} of ${images.length}`}
                 aria-pressed={i === active}
                 className={cn(
-                  "relative block size-20 overflow-hidden rounded-xl bg-surface ring-1 ring-border",
+                  "relative block size-20 overflow-hidden rounded-xl bg-surface ring-1 ring-border transition-shadow duration-150 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
                   i === active && "ring-2 ring-primary",
                 )}
               >

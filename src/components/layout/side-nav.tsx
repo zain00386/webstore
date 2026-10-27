@@ -24,7 +24,7 @@ export function SideNavList({ pathname }: { pathname: string | null }) {
             href={href}
             aria-current={active ? "page" : undefined}
             className={cn(
-              "flex w-16 flex-col items-center gap-1 rounded-2xl px-1 py-2.5 text-[0.7rem] font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+              "flex w-16 flex-col items-center gap-1 rounded-2xl px-1 py-2.5 text-[0.7rem] font-medium text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
               active && "bg-brand text-brand-foreground hover:bg-brand hover:text-brand-foreground",
             )}
           >

@@ -1,12 +1,25 @@
 "use client";
 
-import Form from "next/form";
+import { useState } from "react";
 import { sortOptions, type CatalogQuery } from "@/lib/catalog/query";
+import { Spinner } from "@/components/ui/spinner";
+import { formHref, useCatalogNavigation } from "./catalog-navigation";
 
 /** Sort dropdown that keeps the current filters. Changes apply immediately. */
 export function SortSelect({ query }: { query: CatalogQuery }) {
+  const { pending, navigate } = useCatalogNavigation();
+  // Only say "Sorting…" when THIS control started the navigation (not a filter change).
+  const [changed, setChanged] = useState(false);
+  const sorting = pending && changed;
   return (
-    <Form action="/books" className="flex items-center gap-2">
+    <form
+      action="/books"
+      onSubmit={(e) => {
+        e.preventDefault();
+        navigate(formHref(e.currentTarget));
+      }}
+      className="flex items-center gap-2"
+    >
       {query.q && <input type="hidden" name="q" value={query.q} />}
       {query.category.map((c) => (
         <input key={c} type="hidden" name="category" value={c} />
@@ -20,14 +33,24 @@ export function SortSelect({ query }: { query: CatalogQuery }) {
       {query.max != null && <input type="hidden" name="max" value={query.max} />}
       {query.stock && <input type="hidden" name="stock" value={query.stock} />}
       <label htmlFor="sort" className="text-sm text-muted-foreground">
-        Sort
+        {sorting ? (
+          <span className="flex items-center gap-1.5" role="status">
+            <Spinner className="size-4" /> Sorting…
+          </span>
+        ) : (
+          "Sort"
+        )}
       </label>
       <select
         id="sort"
         name="sort"
         defaultValue={query.sort}
-        onChange={(e) => e.currentTarget.form?.requestSubmit()}
-        className="h-10 rounded-full border border-input bg-surface px-3 text-sm"
+        onChange={(e) => {
+          setChanged(true);
+          e.currentTarget.form?.requestSubmit();
+        }}
+        aria-busy={sorting || undefined}
+        className="h-11 min-w-0 rounded-full border border-input bg-surface px-3 text-sm transition-colors duration-150 hover:bg-muted sm:h-10"
       >
         {sortOptions.map((o) => (
           <option key={o.value} value={o.value}>
@@ -40,6 +63,6 @@ export function SortSelect({ query }: { query: CatalogQuery }) {
           Apply
         </button>
       </noscript>
-    </Form>
+    </form>
   );
 }
