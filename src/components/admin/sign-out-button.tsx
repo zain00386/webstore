@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { LoaderCircle, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 
 export function SignOutButton({ label = "Sign out", className }: { label?: string; className?: string }) {
   const [pending, setPending] = useState(false);
@@ -24,8 +25,8 @@ export function SignOutButton({ label = "Sign out", className }: { label?: strin
         }
       }}
     >
-      {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <LogOut aria-hidden />}
-      {label}
+      {pending ? <Spinner /> : <LogOut aria-hidden />}
+      {pending ? "Signing out…" : label}
     </Button>
   );
 }

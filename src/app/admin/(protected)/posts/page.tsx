@@ -55,7 +55,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
             href={f.id === "all" ? "/admin/posts" : `/admin/posts?status=${f.id}`}
             aria-current={filter === f.id ? "page" : undefined}
             className={cn(
-              "flex min-h-10 shrink-0 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border hover:bg-muted",
+              "flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border hover:bg-muted sm:min-h-10",
               filter === f.id && "bg-primary text-primary-foreground ring-primary hover:bg-primary",
             )}
           >
@@ -67,8 +67,12 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
       {posts.length === 0 ? (
         <EmptyState
           icon={Newspaper}
-          title="No posts here yet"
-          description="Write your first vacancy or guide: it appears on the site as soon as you publish it."
+          title={all.length === 0 ? "No posts yet" : "No posts here"}
+          description={
+            all.length === 0
+              ? "Write your first vacancy or guide: it appears on the site as soon as you publish it."
+              : "No posts have this status. Choose another filter above, or write a new post."
+          }
           action={
             <Button asChild size="pill">
               <Link href="/admin/posts/new">New post</Link>
@@ -81,7 +85,7 @@ export default async function AdminPostsPage({ searchParams }: PageProps<"/admin
             const scheduled = p.status === "published" && p.published_at && p.published_at > now;
             return (
               <li key={p.id}>
-                <Link href={`/admin/posts/${p.id}/edit`} className="flex items-center gap-3 p-4 hover:bg-muted/50">
+                <Link href={`/admin/posts/${p.id}/edit`} className="flex items-center gap-3 p-4 outline-none transition-colors duration-150 hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset">
                   <div className="min-w-0 flex-1 space-y-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {p.kind === "vacancy" ? <Badge variant="brand">Vacancy</Badge> : <Badge>Blog</Badge>}

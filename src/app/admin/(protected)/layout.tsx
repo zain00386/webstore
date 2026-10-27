@@ -29,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Suspense>
         <Link
           href="/"
-          className="mt-4 hidden items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground lg:flex"
+          className="mt-4 hidden items-center gap-2 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground lg:flex"
         >
           <ExternalLink className="size-4" aria-hidden /> View shop
         </Link>
@@ -66,8 +66,8 @@ async function AdminGate({ children }: { children: React.ReactNode }) {
   return (
     <>
       <header className="flex flex-wrap items-center justify-end gap-3 border-b border-border px-4 py-3 lg:px-8">
-        <span className="text-sm text-muted-foreground">
-          Signed in as <span className="font-medium text-foreground">{admin.email}</span>
+        <span className="min-w-0 text-sm break-words text-muted-foreground">
+          Signed in as <span className="font-medium break-all text-foreground">{admin.email}</span>
         </span>
         <SignOutButton />
       </header>

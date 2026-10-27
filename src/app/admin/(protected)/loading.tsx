@@ -6,8 +6,8 @@ export default function AdminPageLoading() {
     <div className="space-y-6" role="status">
       <span className="sr-only">Loading…</span>
       <Skeleton className="h-8 w-48" />
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {Array.from({ length: 4 }, (_, i) => (
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        {Array.from({ length: 5 }, (_, i) => (
           <Skeleton key={i} className="h-28 rounded-2xl" />
         ))}
       </div>

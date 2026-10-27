@@ -77,25 +77,25 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
         />
       </section>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <section aria-labelledby="customer-title" className="space-y-2 rounded-2xl bg-card p-5 text-sm ring-1 ring-border">
+      <div className="grid gap-6 md:grid-cols-[repeat(2,minmax(0,1fr))]">
+        <section aria-labelledby="customer-title" className="min-w-0 space-y-2 rounded-2xl bg-card p-5 text-sm ring-1 ring-border">
           <h2 id="customer-title" className="font-semibold">
             Customer
           </h2>
-          <p className="font-medium">{order.customer_name}</p>
+          <p className="font-medium break-words">{order.customer_name}</p>
           <p className="tabular-nums">{order.customer_phone}</p>
-          {order.customer_email && <p>{order.customer_email}</p>}
-          <p>
+          {order.customer_email && <p className="break-all">{order.customer_email}</p>}
+          <p className="break-words">
             {order.address}, {order.city}
           </p>
-          {order.notes && <p className="rounded-lg bg-muted p-2">Customer note: {order.notes}</p>}
+          {order.notes && <p className="rounded-lg bg-muted p-2 break-words">Customer note: {order.notes}</p>}
           <div className="flex flex-wrap gap-2 pt-1">
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-11 px-3 sm:h-8">
               <a href={`tel:${order.customer_phone}`}>
                 <Phone aria-hidden /> Call
               </a>
             </Button>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="outline" size="sm" className="h-11 px-3 sm:h-8">
               <a
                 href={whatsappLink(whatsappPhone, `Assalam-o-Alaikum ${order.customer_name}, this is Dogar's Unique Books Rawalpindi about your order ${order.order_number}.`)}
                 target="_blank"
@@ -107,7 +107,7 @@ export default async function AdminOrderPage({ params }: PageProps<"/admin/order
           </div>
         </section>
 
-        <section aria-labelledby="delivery-title" className="space-y-2 rounded-2xl bg-card p-5 text-sm ring-1 ring-border">
+        <section aria-labelledby="delivery-title" className="min-w-0 space-y-2 rounded-2xl bg-card p-5 text-sm ring-1 ring-border">
           <h2 id="delivery-title" className="font-semibold">
             Payment & delivery
           </h2>
@@ -199,7 +199,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
   return (
     <p className="flex gap-2">
       <span className="w-28 shrink-0 text-muted-foreground">{label}</span>
-      <span>{children}</span>
+      <span className="min-w-0 break-words">{children}</span>
     </p>
   );
 }

@@ -1,13 +1,15 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { LoaderCircle, Plus, Save, Trash2 } from "lucide-react";
+import { Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { adminField } from "@/components/admin/field-styles";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { createCategory, deleteCategory, updateCategory, type CategoryState } from "./actions";
 
-const input = "h-9 rounded-lg border border-input bg-surface px-2 text-sm";
+const input = `${adminField} h-11 px-2 sm:h-9`;
 
 function useToast(state: CategoryState) {
   useEffect(() => {
@@ -35,9 +37,9 @@ export function NewCategoryForm() {
         Order
         <input name="sortOrder" defaultValue="500" inputMode="numeric" className={input} />
       </label>
-      <Button type="submit" disabled={pending}>
-        {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Plus aria-hidden />} Add
-      </Button>
+      <SubmitButton pending={pending} pendingLabel="Adding…" icon={<Plus aria-hidden />}>
+        Add
+      </SubmitButton>
     </form>
   );
 }
@@ -74,9 +76,9 @@ export function CategoryRow({
             <input type="checkbox" name="isActive" defaultChecked={category.is_active} className="size-4 accent-[var(--primary)]" />
             Shown in shop
           </label>
-          <Button type="submit" variant="outline" disabled={pending}>
-            {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />} Save
-          </Button>
+          <SubmitButton variant="outline" pending={pending} pendingLabel="Saving…" icon={<Save aria-hidden />}>
+            Save
+          </SubmitButton>
           {!isFallback && (
             <Dialog>
               <DialogTrigger asChild>
@@ -98,9 +100,9 @@ export function CategoryRow({
                     </DialogDescription>
                   </DialogHeader>
                   <DialogFooter>
-                    <Button type="submit" variant="destructive" disabled={deleting}>
-                      {deleting ? <LoaderCircle className="animate-spin" aria-hidden /> : <Trash2 aria-hidden />} Delete category
-                    </Button>
+                    <SubmitButton variant="destructive" pending={deleting} pendingLabel="Deleting…" icon={<Trash2 aria-hidden />}>
+                      Delete category
+                    </SubmitButton>
                   </DialogFooter>
                 </form>
               </DialogContent>

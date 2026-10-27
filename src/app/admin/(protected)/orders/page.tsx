@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Form from "next/form";
 import Link from "next/link";
 import { ChevronRight, Inbox } from "lucide-react";
 import { adminOrdersHref, orderViews, ORDERS_PER_PAGE, parseAdminOrdersQuery } from "@/lib/admin/orders-list";
@@ -9,6 +8,8 @@ import { fetchAdminOrders } from "@/lib/db/admin-orders";
 import { formatPKR } from "@/lib/format";
 import { createSessionClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { adminField } from "@/components/admin/field-styles";
+import { FilterForm, FilterLink, FilterResults, FilterScope, FilterSubmit } from "@/components/admin/filter-form";
 import { OrderStatusBadge, PaymentStatusBadge } from "@/components/admin/order-badges";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Pagination } from "@/components/layout/pagination";
@@ -39,82 +40,86 @@ export default async function AdminOrdersPage({ searchParams }: PageProps<"/admi
         </p>
       </div>
 
-      <nav aria-label="Order filters" className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
-        {orderViews.map((v) => (
-          <Link
-            key={v.id}
-            href={adminOrdersHref({ view: v.id, q: query.q })}
-            aria-current={query.view === v.id ? "page" : undefined}
-            className={cn(
-              "flex min-h-10 shrink-0 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border hover:bg-muted",
-              query.view === v.id && "bg-primary text-primary-foreground ring-primary hover:bg-primary",
-            )}
-          >
-            {v.label}
-          </Link>
-        ))}
-      </nav>
+      <FilterScope>
+        <nav aria-label="Order filters" className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1">
+          {orderViews.map((v) => (
+            <FilterLink
+              key={v.id}
+              href={adminOrdersHref({ view: v.id, q: query.q })}
+              aria-current={query.view === v.id ? "page" : undefined}
+              className={cn(
+                "flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium ring-1 ring-border transition-colors duration-150 ease-out hover:bg-muted sm:min-h-10",
+                query.view === v.id && "bg-primary text-primary-foreground ring-primary hover:bg-primary",
+              )}
+            >
+              {v.label}
+            </FilterLink>
+          ))}
+        </nav>
 
-      <Form action="/admin/orders" className="flex flex-wrap items-end gap-2 rounded-2xl bg-surface p-3 ring-1 ring-border">
-        {query.view !== "action" && <input type="hidden" name="view" value={query.view} />}
-        <label className="flex min-w-48 flex-1 flex-col gap-1 text-xs font-medium">
-          Search
-          <input
-            name="q"
-            type="search"
-            defaultValue={query.q}
-            placeholder="DUB-10001, 0300 1234567 or name"
-            className="h-10 rounded-lg border border-input bg-card px-3 text-sm font-normal"
-          />
-        </label>
-        <Button type="submit">Search</Button>
-        {query.q && (
-          <Button asChild variant="ghost">
-            <Link href={adminOrdersHref({ view: query.view })}>Clear</Link>
-          </Button>
-        )}
-      </Form>
+        <FilterForm action="/admin/orders" className="flex flex-wrap items-end gap-2 rounded-2xl bg-surface p-3 ring-1 ring-border">
+          {query.view !== "action" && <input type="hidden" name="view" value={query.view} />}
+          <label className="flex min-w-0 basis-full flex-col gap-1 text-xs font-medium sm:min-w-48 sm:basis-auto sm:flex-1">
+            Search
+            <input
+              name="q"
+              type="search"
+              defaultValue={query.q}
+              placeholder="DUB-10001, 0300 1234567 or name"
+              className={`${adminField} h-11 min-w-0 bg-card px-3 font-normal sm:h-10`}
+            />
+          </label>
+          <FilterSubmit className="h-11 sm:h-10">Search</FilterSubmit>
+          {query.q && (
+            <Button asChild variant="ghost" className="h-11 sm:h-10">
+              <FilterLink href={adminOrdersHref({ view: query.view })}>Clear</FilterLink>
+            </Button>
+          )}
+        </FilterForm>
 
-      <p className="text-sm text-muted-foreground">
-        {total} order{total === 1 ? "" : "s"}
-        {pageCount > 1 && ` (page ${query.page} of ${pageCount})`}
-      </p>
+        <FilterResults className="space-y-5">
+          <p className="text-sm text-muted-foreground">
+            {total} order{total === 1 ? "" : "s"}
+            {pageCount > 1 && ` (page ${query.page} of ${pageCount})`}
+          </p>
 
-      {rows.length === 0 ? (
-        <EmptyState
-          icon={Inbox}
-          title={query.view === "action" && !query.q ? "Nothing waiting" : "No orders found"}
-          description={query.view === "action" && !query.q ? "New orders and payments to verify will appear here." : "Try another filter or search."}
-        />
-      ) : (
-        <>
-          <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card ring-1 ring-border">
-            {rows.map((o) => (
-              <li key={o.id}>
-                <Link href={`/admin/orders/${o.id}`} className="flex items-center gap-3 p-4 hover:bg-muted/50">
-                  <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                      <span className="font-semibold tracking-wide">{o.order_number}</span>
-                      <OrderStatusBadge status={o.status} />
-                      <PaymentStatusBadge status={o.payment_status} method={o.payment_method} />
-                    </div>
-                    <p className="truncate text-sm">
-                      {o.customer_name} · {o.customer_phone} · {o.city}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {placed.format(new Date(o.created_at))} · {paymentLabels[o.payment_method]} ·{" "}
-                      {o.delivery_method === "courier" ? "Courier" : "Pakistan Post"}
-                    </p>
-                  </div>
-                  <span className="font-semibold tabular-nums">{formatPKR(o.total)}</span>
-                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                </Link>
-              </li>
-            ))}
-          </ul>
-          <Pagination page={query.page} pageCount={pageCount} hrefFor={(page) => adminOrdersHref({ ...query, page })} />
-        </>
-      )}
+          {rows.length === 0 ? (
+            <EmptyState
+              icon={Inbox}
+              title={query.view === "action" && !query.q ? "Nothing waiting" : "No orders found"}
+              description={query.view === "action" && !query.q ? "New orders and payments to verify will appear here." : "Try another filter or search."}
+            />
+          ) : (
+            <>
+              <ul className="divide-y divide-border overflow-hidden rounded-2xl bg-card ring-1 ring-border">
+                {rows.map((o) => (
+                  <li key={o.id}>
+                    <Link href={`/admin/orders/${o.id}`} className="flex items-center gap-3 p-4 outline-none transition-colors duration-150 hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset">
+                      <div className="min-w-0 flex-1 space-y-1">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                          <span className="font-semibold tracking-wide">{o.order_number}</span>
+                          <OrderStatusBadge status={o.status} />
+                          <PaymentStatusBadge status={o.payment_status} method={o.payment_method} />
+                        </div>
+                        <p className="truncate text-sm">
+                          {o.customer_name} · {o.customer_phone} · {o.city}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {placed.format(new Date(o.created_at))} · {paymentLabels[o.payment_method]} ·{" "}
+                          {o.delivery_method === "courier" ? "Courier" : "Pakistan Post"}
+                        </p>
+                      </div>
+                      <span className="shrink-0 font-semibold whitespace-nowrap tabular-nums">{formatPKR(o.total)}</span>
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <Pagination page={query.page} pageCount={pageCount} hrefFor={(page) => adminOrdersHref({ ...query, page })} link={FilterLink} />
+            </>
+          )}
+        </FilterResults>
+      </FilterScope>
     </div>
   );
 }

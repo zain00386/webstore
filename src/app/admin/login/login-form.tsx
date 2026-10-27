@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { LoaderCircle, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { Alert } from "@/components/feedback/alert";
 import { FormField } from "@/components/forms/form-field";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
 
 type LoginResult =
@@ -51,10 +51,9 @@ export function LoginForm({ next }: { next: string }) {
       <FormField label="Password" required error={failed?.fieldErrors?.password}>
         <Input name="password" type="password" autoComplete="current-password" />
       </FormField>
-      <Button type="submit" size="pill" className="w-full" disabled={pending}>
-        {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <LogIn aria-hidden />}
-        {pending ? "Signing in…" : "Sign in"}
-      </Button>
+      <SubmitButton size="pill" className="w-full" pending={pending} pendingLabel="Signing in…" icon={<LogIn aria-hidden />}>
+        Sign in
+      </SubmitButton>
     </form>
   );
 }

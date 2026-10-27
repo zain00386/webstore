@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, useState, type ReactNode } from "react";
-import { LoaderCircle } from "lucide-react";
 import { toast } from "sonner";
+import { adminField } from "@/components/admin/field-styles";
 import { Alert } from "@/components/feedback/alert";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,7 +12,7 @@ import { actionLabels, couriers, type OrderAction } from "@/lib/orders/admin-act
 import { formatPKR } from "@/lib/format";
 import { updateOrder, type OrderActionState } from "./actions";
 
-const field = "h-10 w-full rounded-lg border border-input bg-surface px-3 text-sm";
+const field = `${adminField} h-10 w-full px-3`;
 
 type Props = {
   orderId: string;
@@ -47,7 +48,6 @@ export function OrderActions(p: Props) {
       <input type="hidden" name="action" value={a} />
     </>
   );
-  const spinner = pending ? <LoaderCircle className="animate-spin" aria-hidden /> : null;
   const main = p.actions.filter((a) => a !== "note");
 
   return (
@@ -61,9 +61,10 @@ export function OrderActions(p: Props) {
           oneClick.has(a) ? (
             <form key={a} action={action}>
               {hidden(a)}
-              <Button type="submit" disabled={pending}>
-                {spinner} {actionLabels[a]}
-              </Button>
+              {/* Each form spins only its own button; `pending` disables the rest while any save runs. */}
+              <SubmitButton disabled={pending} pendingLabel="Saving…">
+                {actionLabels[a]}
+              </SubmitButton>
             </form>
           ) : (
             <Button
@@ -72,6 +73,7 @@ export function OrderActions(p: Props) {
               variant={a === "cancel" || a === "payment_failed" ? "outline" : a === "mark_paid" || a === "ship" ? "default" : "secondary"}
               className={a === "cancel" ? "text-destructive" : undefined}
               onClick={() => setOpen(a)}
+              disabled={pending}
             >
               {actionLabels[a]}…
             </Button>
@@ -97,9 +99,9 @@ export function OrderActions(p: Props) {
           </label>
           {state.error && <Alert tone="error">{state.error}</Alert>}
           <DialogFooter>
-            <Button type="submit" disabled={pending}>
-              {spinner} Mark paid
-            </Button>
+            <SubmitButton pending={pending} pendingLabel="Saving…">
+              Mark paid
+            </SubmitButton>
           </DialogFooter>
         </form>
       </ConfirmDialog>
@@ -115,9 +117,9 @@ export function OrderActions(p: Props) {
           <NoteField label="Note (optional)" />
           {state.error && <Alert tone="error">{state.error}</Alert>}
           <DialogFooter>
-            <Button type="submit" variant="outline" disabled={pending}>
-              {spinner} Payment not received
-            </Button>
+            <SubmitButton variant="outline" pending={pending} pendingLabel="Saving…">
+              Payment not received
+            </SubmitButton>
           </DialogFooter>
         </form>
       </ConfirmDialog>
@@ -145,9 +147,9 @@ export function OrderActions(p: Props) {
           </label>
           {state.error && !state.fieldErrors?.trackingNumber && <Alert tone="error">{state.error}</Alert>}
           <DialogFooter>
-            <Button type="submit" disabled={pending}>
-              {spinner} Mark shipped
-            </Button>
+            <SubmitButton pending={pending} pendingLabel="Saving…">
+              Mark shipped
+            </SubmitButton>
           </DialogFooter>
         </form>
       </ConfirmDialog>
@@ -163,9 +165,9 @@ export function OrderActions(p: Props) {
           <NoteField label="Reason (the customer doesn't see this)" required error={state.fieldErrors?.note} />
           {state.error && !state.fieldErrors?.note && <Alert tone="error">{state.error}</Alert>}
           <DialogFooter>
-            <Button type="submit" variant="destructive" disabled={pending}>
-              {spinner} Cancel order
-            </Button>
+            <SubmitButton variant="destructive" pending={pending} pendingLabel="Cancelling…">
+              Cancel order
+            </SubmitButton>
           </DialogFooter>
         </form>
       </ConfirmDialog>
@@ -181,9 +183,9 @@ export function OrderActions(p: Props) {
           <NoteField label="How was it refunded?" required error={state.fieldErrors?.note} />
           {state.error && !state.fieldErrors?.note && <Alert tone="error">{state.error}</Alert>}
           <DialogFooter>
-            <Button type="submit" disabled={pending}>
-              {spinner} Mark refunded
-            </Button>
+            <SubmitButton pending={pending} pendingLabel="Saving…">
+              Mark refunded
+            </SubmitButton>
           </DialogFooter>
         </form>
       </ConfirmDialog>
@@ -204,9 +206,9 @@ export function AddNoteForm({ orderId, updatedAt }: { orderId: string; updatedAt
       <input type="hidden" name="expectedUpdatedAt" value={updatedAt} />
       <input type="hidden" name="action" value="note" />
       <NoteField label="Add a private note" required error={state.fieldErrors?.note} />
-      <Button type="submit" variant="outline" size="sm" disabled={pending}>
-        {pending && <LoaderCircle className="animate-spin" aria-hidden />} Add note
-      </Button>
+      <SubmitButton variant="outline" size="sm" className="h-11 px-3 sm:h-8" pending={pending} pendingLabel="Adding…">
+        Add note
+      </SubmitButton>
     </form>
   );
 }

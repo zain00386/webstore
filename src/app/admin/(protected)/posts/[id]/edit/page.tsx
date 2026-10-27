@@ -50,10 +50,10 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/admin/posts" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/admin/posts" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ChevronLeft className="size-4" aria-hidden /> All posts
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Edit post</h1>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Edit post</h1>
         </div>
         {live && (
           <Link href={`/blog/${post.slug}`} target="_blank" className="inline-flex items-center gap-1 text-sm font-medium hover:underline">
@@ -70,6 +70,7 @@ export default async function EditPostPage({ params, searchParams }: PageProps<"
       )}
 
       <PostForm
+        key={post.updated_at}
         post={{
           id: post.id,
           updatedAt: post.updated_at,

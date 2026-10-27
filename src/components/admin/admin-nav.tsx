@@ -27,7 +27,7 @@ export function AdminNav() {
 export function AdminNavList({ pathname }: { pathname: string | null }) {
   return (
     <nav aria-label="Admin">
-      <ul className="flex gap-1 overflow-x-auto lg:flex-col lg:overflow-visible">
+      <ul className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-1 lg:mx-0 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
         {items.map(({ label, href, icon: Icon }) => {
           const isActive = active(pathname, href);
           return (
@@ -36,7 +36,7 @@ export function AdminNavList({ pathname }: { pathname: string | null }) {
                 href={href}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "flex min-h-10 items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "flex min-h-11 items-center gap-2.5 rounded-xl px-3 text-sm font-medium text-muted-foreground transition-colors duration-150 ease-out hover:bg-muted hover:text-foreground lg:min-h-10",
                   isActive && "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
                 )}
               >

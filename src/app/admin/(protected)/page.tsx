@@ -62,9 +62,9 @@ export default async function AdminOverviewPage() {
         {stats.map(({ label, value, icon: Icon, tone, href }) => {
           const body = (
             <>
-              <div className="mb-3 flex items-center justify-between text-muted-foreground">
-                <span className="text-sm">{label}</span>
-                <Icon className="size-4" aria-hidden />
+              <div className="mb-3 flex items-center justify-between gap-2 text-muted-foreground">
+                <span className="min-w-0 text-sm">{label}</span>
+                <Icon className="size-4 shrink-0" aria-hidden />
               </div>
               <p className={`text-3xl font-semibold tabular-nums ${tone === "warn" && value ? "text-brand" : ""}`}>
                 {value ?? "–"}
@@ -74,7 +74,7 @@ export default async function AdminOverviewPage() {
           return (
             <li key={label}>
               {href ? (
-                <Link href={href} className="block h-full rounded-2xl bg-card p-5 ring-1 ring-border hover:ring-primary">
+                <Link href={href} className="block h-full rounded-2xl bg-card p-5 ring-1 ring-border transition-shadow duration-150 outline-none hover:shadow-md hover:ring-primary focus-visible:ring-3 focus-visible:ring-ring/50">
                   {body}
                 </Link>
               ) : (

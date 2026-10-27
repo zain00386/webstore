@@ -1,10 +1,10 @@
 "use client";
 
 import { useActionState, useEffect, type ReactNode } from "react";
-import { Building2, LoaderCircle, Save, Smartphone } from "lucide-react";
+import { Building2, Save, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { FormField } from "@/components/forms/form-field";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { savePaymentSettings, type PaymentSettingsInput, type PaymentSettingsState } from "./actions";
@@ -71,9 +71,9 @@ export function PaymentSettingsForm({ initial }: { initial: PaymentSettingsInput
         <Textarea name="instructions" defaultValue={v.instructions} rows={3} maxLength={2000} />
       </FormField>
 
-      <Button type="submit" size="pill" disabled={pending}>
-        {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />} Save payment details
-      </Button>
+      <SubmitButton size="pill" pending={pending} pendingLabel="Saving…" icon={<Save aria-hidden />}>
+        Save payment details
+      </SubmitButton>
     </form>
   );
 }
@@ -103,6 +103,7 @@ function MethodCard({
           Offer at checkout
         </label>
       </div>
+      <p className="-mt-2 text-xs text-muted-foreground">Fields marked * are required only when this is offered at checkout.</p>
       <div className="grid gap-4 sm:grid-cols-2">{children}</div>
     </fieldset>
   );

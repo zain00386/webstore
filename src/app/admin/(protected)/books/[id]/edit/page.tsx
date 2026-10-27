@@ -52,10 +52,10 @@ export default async function EditBookPage({ params, searchParams }: PageProps<"
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <Link href="/admin/books" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+          <Link href="/admin/books" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
             <ChevronLeft className="size-4" aria-hidden /> All books
           </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-tight">Edit book</h1>
+          <h1 className="mt-1 text-2xl font-semibold tracking-tight">Edit book</h1>
         </div>
         {book.is_active && (
           <Link
@@ -73,6 +73,7 @@ export default async function EditBookPage({ params, searchParams }: PageProps<"
       {!book.is_active && <Alert tone="warning">This book is hidden from the shop.</Alert>}
 
       <BookForm
+        key={book.updated_at}
         book={{
           id: book.id,
           updatedAt: book.updated_at,

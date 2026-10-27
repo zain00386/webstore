@@ -1,15 +1,18 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { LoaderCircle, Save } from "lucide-react";
+import { Save } from "lucide-react";
 import { examGroups, umbrellaExams } from "@/config/exams";
 import { toSlug } from "@/lib/catalog/lahore-import";
 import type { PostFormValues } from "@/lib/admin/post-schema";
 import { MAX_COVER_BYTES } from "@/lib/admin/image-type";
+import { adminField } from "@/components/admin/field-styles";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { PostBody } from "@/components/blog/post-body";
 import { Alert } from "@/components/feedback/alert";
 import { FormField } from "@/components/forms/form-field";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,25 +23,40 @@ type PostFormProps = {
   post: { id: string; updatedAt: string; values: PostFormValues; coverUrl: string | null } | null;
 };
 
-const select = "h-10 w-full rounded-lg border border-input bg-surface px-2 text-sm";
+const select = `${adminField} h-10 w-full px-2`;
 
 export function PostForm({ post }: PostFormProps) {
   const [state, action, pending] = useActionState<PostFormState, FormData>(savePost, {});
   const v = state.values ?? post?.values;
+  // Reset by the edit page re-mounting this form (key = updatedAt) after a successful save.
+  const [dirty, setDirty] = useState(false);
+  const [coverChosen, setCoverChosen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  useUnsavedChangesGuard(dirty, formRef);
   return (
-    <form key={state.attempt ?? "initial"} action={action} className="space-y-6" noValidate>
+    <form
+      ref={formRef}
+      key={state.attempt ?? "initial"}
+      action={action}
+      className="space-y-6"
+      noValidate
+      onChange={(ev) => {
+        setDirty(true);
+        const t: EventTarget = ev.target;
+        if (t instanceof HTMLInputElement && t.type === "file") setCoverChosen(Boolean(t.files?.length));
+      }}
+    >
       {post && <input type="hidden" name="id" value={post.id} />}
       {post && <input type="hidden" name="updatedAt" value={post.updatedAt} />}
       {state.error && <Alert tone="error">{state.error}</Alert>}
-      <Fields values={v} errors={state.fieldErrors ?? {}} post={post} />
+      <Fields values={v} errors={state.fieldErrors ?? {}} post={post} coverLost={Boolean(state.attempt) && coverChosen} />
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:-mx-8 lg:px-8">
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" size="pill">
           <Link href="/admin/posts">Cancel</Link>
         </Button>
-        <Button type="submit" size="pill" disabled={pending}>
-          {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />}
-          {pending ? "Saving…" : "Save post"}
-        </Button>
+        <SubmitButton size="pill" pending={pending} pendingLabel="Saving…" icon={<Save aria-hidden />}>
+          Save post
+        </SubmitButton>
       </div>
     </form>
   );
@@ -48,10 +66,13 @@ function Fields({
   values: v,
   errors: e,
   post,
+  coverLost,
 }: {
   values: PostFormValues | undefined;
   errors: NonNullable<PostFormState["fieldErrors"]>;
   post: PostFormProps["post"];
+  /** An image was chosen before a failed save; the browser can't keep the file. */
+  coverLost: boolean;
 }) {
   const [kind, setKind] = useState<"blog" | "vacancy">(v?.kind ?? "vacancy");
   const [slug, setSlug] = useState(v?.slug ?? "");
@@ -66,7 +87,7 @@ function Fields({
   }, [preview]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
         <section className="space-y-4 rounded-2xl bg-card p-5 ring-1 ring-border">
           <fieldset>
@@ -76,7 +97,7 @@ function Fields({
                 <label
                   key={k}
                   className={cn(
-                    "flex min-h-10 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium ring-1 ring-border",
+                    "flex min-h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium ring-1 ring-border has-focus-visible:ring-3 has-focus-visible:ring-ring/50 sm:min-h-10",
                     kind === k && "bg-primary text-primary-foreground ring-primary",
                   )}
                 >
@@ -124,7 +145,7 @@ function Fields({
                     role="tab"
                     aria-selected={tab === t}
                     onClick={() => setTab(t)}
-                    className={cn("min-h-8 rounded-full px-3 font-medium", tab === t && "bg-card shadow-sm")}
+                    className={cn("min-h-11 rounded-full px-3 font-medium sm:min-h-8", tab === t && "bg-card shadow-sm")}
                   >
                     {t === "write" ? "Write" : "Preview"}
                   </button>
@@ -140,7 +161,7 @@ function Fields({
               onChange={(ev) => setBody(ev.target.value)}
               rows={16}
               maxLength={50000}
-              className={cn("font-mono text-sm", tab === "preview" && "hidden")}
+              className={cn("font-mono", tab === "preview" && "hidden")}
             />
             {tab === "preview" && (
               <div role="tabpanel" aria-label="Preview" className="min-h-64 rounded-xl bg-surface p-4 ring-1 ring-border">
@@ -220,7 +241,11 @@ function Fields({
               <img src={preview ?? post!.coverUrl!} alt="Image preview" className="h-full w-full object-cover" />
             )}
           </div>
-          <FormField label="Upload an image" hint="Optional. JPG, PNG or WebP, up to 2 MB" error={e.cover ?? coverWarning ?? undefined}>
+          <FormField
+            label="Upload an image"
+            hint={coverLost && !preview ? "Please choose the image again: it isn't kept after a failed save. JPG, PNG or WebP, up to 2 MB" : "Optional. JPG, PNG or WebP, up to 2 MB"}
+            error={e.cover ?? coverWarning ?? undefined}
+          >
             <input
               name="cover"
               type="file"

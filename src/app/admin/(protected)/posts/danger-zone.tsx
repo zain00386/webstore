@@ -1,8 +1,9 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { LoaderCircle, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { Alert } from "@/components/feedback/alert";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -20,7 +21,7 @@ export function PostDangerZone({ id, title }: { id: string; title: string }) {
         To take a post off the site but keep it, set its status to <strong>Archived</strong> instead. Deleting
         can&apos;t be undone.
       </p>
-      <Dialog>
+      <Dialog onOpenChange={(open) => !open && setTyped("")}>
         <DialogTrigger asChild>
           <Button variant="destructive">
             <Trash2 aria-hidden /> Delete permanently…
@@ -41,10 +42,9 @@ export function PostDangerZone({ id, title }: { id: string; title: string }) {
             </label>
             <Input id="confirm-delete" name="confirm" value={typed} onChange={(e) => setTyped(e.target.value)} autoComplete="off" />
             <DialogFooter>
-              <Button type="submit" variant="destructive" disabled={typed !== "DELETE" || pending}>
-                {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Trash2 aria-hidden />}
+              <SubmitButton variant="destructive" disabled={typed !== "DELETE"} pending={pending} pendingLabel="Deleting…" icon={<Trash2 aria-hidden />}>
                 Delete permanently
-              </Button>
+              </SubmitButton>
             </DialogFooter>
           </form>
         </DialogContent>

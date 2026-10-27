@@ -17,10 +17,10 @@ export default async function NewBookPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Link href="/admin/books" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
+        <Link href="/admin/books" className="inline-flex min-h-11 items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ChevronLeft className="size-4" aria-hidden /> All books
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">Add a book</h1>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight">Add a book</h1>
       </div>
       <BookForm book={null} categories={categories} />
     </div>

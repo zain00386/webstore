@@ -1,14 +1,17 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ImageUp, LoaderCircle, Save } from "lucide-react";
+import { ImageUp, Save } from "lucide-react";
 import { examGroups, umbrellaExams } from "@/config/exams";
 import { toSlug } from "@/lib/catalog/lahore-import";
 import type { BookFormValues } from "@/lib/admin/book-schema";
 import { MAX_COVER_BYTES } from "@/lib/admin/image-type";
+import { adminField } from "@/components/admin/field-styles";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { Alert } from "@/components/feedback/alert";
 import { FormField } from "@/components/forms/form-field";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,26 +25,41 @@ type BookFormProps = {
   categories: Category[];
 };
 
-const select = "h-10 w-full rounded-lg border border-input bg-surface px-2 text-sm";
+const select = `${adminField} h-10 w-full px-2`;
 
 export function BookForm({ book, categories }: BookFormProps) {
   const [state, action, pending] = useActionState<BookFormState, FormData>(saveBook, {});
   // After a failed save, re-mount the form with what the admin typed.
   const v = state.values ?? book?.values;
+  // Reset by the edit page re-mounting this form (key = updatedAt) after a successful save.
+  const [dirty, setDirty] = useState(false);
+  const [coverChosen, setCoverChosen] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  useUnsavedChangesGuard(dirty, formRef);
   return (
-    <form key={state.attempt ?? "initial"} action={action} className="space-y-6" noValidate>
+    <form
+      ref={formRef}
+      key={state.attempt ?? "initial"}
+      action={action}
+      className="space-y-6"
+      noValidate
+      onChange={(ev) => {
+        setDirty(true);
+        const t: EventTarget = ev.target;
+        if (t instanceof HTMLInputElement && t.type === "file") setCoverChosen(Boolean(t.files?.length));
+      }}
+    >
       {book && <input type="hidden" name="id" value={book.id} />}
       {book && <input type="hidden" name="updatedAt" value={book.updatedAt} />}
       {state.error && <Alert tone="error">{state.error}</Alert>}
-      <Fields values={v} errors={state.fieldErrors ?? {}} book={book} categories={categories} />
+      <Fields values={v} errors={state.fieldErrors ?? {}} book={book} categories={categories} coverLost={Boolean(state.attempt) && coverChosen} />
       <div className="sticky bottom-0 z-10 -mx-4 flex flex-wrap items-center justify-end gap-2 border-t border-border bg-background/95 px-4 py-3 backdrop-blur lg:-mx-8 lg:px-8">
-        <Button asChild variant="outline">
+        <Button asChild variant="outline" size="pill">
           <Link href="/admin/books">Cancel</Link>
         </Button>
-        <Button type="submit" size="pill" disabled={pending}>
-          {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />}
-          {pending ? "Saving…" : book ? "Save changes" : "Add book"}
-        </Button>
+        <SubmitButton size="pill" pending={pending} pendingLabel="Saving…" icon={<Save aria-hidden />}>
+          {book ? "Save changes" : "Add book"}
+        </SubmitButton>
       </div>
     </form>
   );
@@ -52,11 +70,14 @@ function Fields({
   errors: e,
   book,
   categories,
+  coverLost,
 }: {
   values: BookFormValues | undefined;
   errors: NonNullable<BookFormState["fieldErrors"]>;
   book: BookFormProps["book"];
   categories: Category[];
+  /** A cover was chosen before a failed save; the browser can't keep the file. */
+  coverLost: boolean;
 }) {
   const [slug, setSlug] = useState(v?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(Boolean(book) || Boolean(v?.slug));
@@ -69,7 +90,7 @@ function Fields({
   }, [preview]);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="space-y-6">
         <section className="space-y-4 rounded-2xl bg-card p-5 ring-1 ring-border">
           <h2 className="font-semibold">Book details</h2>
@@ -152,7 +173,7 @@ function Fields({
                 <div key={g.slug}>
                   <p className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{g.title}</p>
                   {g.exams.map((x) => (
-                    <label key={x.slug} className="flex min-h-8 items-center gap-2 text-sm">
+                    <label key={x.slug} className="flex min-h-11 items-center gap-2 text-sm sm:min-h-8">
                       <input
                         type="checkbox"
                         name="examTags"
@@ -209,7 +230,11 @@ function Fields({
               <img src={preview ?? book!.coverUrl!} alt="Cover preview" className="h-full w-full object-contain" />
             )}
           </div>
-          <FormField label="Upload a new cover" hint="JPG, PNG or WebP, up to 2 MB" error={e.cover ?? coverWarning ?? undefined}>
+          <FormField
+            label="Upload a new cover"
+            hint={coverLost && !preview ? "Please choose the image again: it isn't kept after a failed save. JPG, PNG or WebP, up to 2 MB" : "JPG, PNG or WebP, up to 2 MB"}
+            error={e.cover ?? coverWarning ?? undefined}
+          >
             <input
               name="cover"
               type="file"

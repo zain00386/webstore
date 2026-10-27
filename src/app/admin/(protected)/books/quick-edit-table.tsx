@@ -2,10 +2,13 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Check, LoaderCircle, Pencil, Save, Undo2, X } from "lucide-react";
+import { Check, Pencil, Save, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatPKR } from "@/lib/format";
+import { adminField } from "@/components/admin/field-styles";
+import { useUnsavedChangesGuard } from "@/components/admin/use-unsaved-changes-guard";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { quickUpdateBooks, type QuickEditResult } from "./actions";
 
@@ -57,6 +60,8 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
     [rows, drafts],
   );
   const invalid = changed.filter((r) => draftError(drafts[r.id], r));
+  // Filters, pagination and links re-mount the table, which would drop the drafts.
+  useUnsavedChangesGuard(changed.length > 0);
 
   const update = (id: string, patch: Partial<Draft>) => {
     setDrafts((d) => ({ ...d, [id]: { ...d[id], ...patch } }));
@@ -118,21 +123,21 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
             <Undo2 aria-hidden /> Undo
           </Button>
           <Button type="button" onClick={save} disabled={pending || changed.length === 0 || invalid.length > 0}>
-            {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />}
-            Save changes
+            {pending ? <Spinner /> : <Save aria-hidden />}
+            {pending ? "Saving…" : "Save changes"}
           </Button>
         </div>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl ring-1 ring-border">
-        <table className="w-full text-sm md:min-w-[760px]">
+      <fieldset disabled={pending} className="min-w-0 overflow-x-auto rounded-2xl ring-1 ring-border">
+        <table className="w-full text-sm">
           <thead className="hidden bg-muted text-left text-xs text-muted-foreground md:table-header-group">
             <tr>
               <th scope="col" className="p-3 font-medium">Book</th>
-              <th scope="col" className="w-32 p-3 font-medium">Price (Rs.)</th>
-              <th scope="col" className="w-28 p-3 font-medium">Stock</th>
-              <th scope="col" className="w-24 p-3 font-medium">On sale</th>
-              <th scope="col" className="w-28 p-3 font-medium">New arrival</th>
+              <th scope="col" className="w-28 p-3 font-medium">Price (Rs.)</th>
+              <th scope="col" className="w-24 p-3 font-medium">Stock</th>
+              <th scope="col" className="w-20 p-3 font-medium">On sale</th>
+              <th scope="col" className="w-24 p-3 font-medium">New arrival</th>
               <th scope="col" className="w-12 p-3"><span className="sr-only">Edit</span></th>
             </tr>
           </thead>
@@ -151,7 +156,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                     res && !res.ok && "bg-brand-soft/60",
                   )}
                 >
-                  <td className="col-span-full md:p-3">
+                  <td className="col-span-full min-w-0 md:p-3">
                     <div className="flex items-center gap-3">
                       <span className="relative block h-12 w-9 shrink-0 overflow-hidden rounded bg-muted">
                         {r.coverUrl && (
@@ -160,7 +165,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                         )}
                       </span>
                       <span className="min-w-0">
-                        <Link href={`/admin/books/${r.id}/edit`} className="line-clamp-2 font-medium hover:underline">
+                        <Link href={`/admin/books/${r.id}/edit`} className="line-clamp-2 font-medium wrap-anywhere hover:underline">
                           {r.title}
                         </Link>
                         <span className="block text-xs text-muted-foreground">
@@ -192,7 +197,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                       value={d.price}
                       onChange={(e) => update(r.id, { price: e.target.value.trim() })}
                       aria-invalid={Boolean(err) || undefined}
-                      className="h-9 w-full rounded-lg border border-input bg-surface px-2 tabular-nums"
+                      className={`${adminField} h-11 w-full px-2 md:h-9 tabular-nums`}
                     />
                   </td>
                   <td className="md:p-3">
@@ -205,14 +210,14 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                       value={d.stock}
                       onChange={(e) => update(r.id, { stock: e.target.value.trim() })}
                       aria-invalid={Boolean(err) || undefined}
-                      className="h-9 w-full rounded-lg border border-input bg-surface px-2 tabular-nums"
+                      className={`${adminField} h-11 w-full px-2 md:h-9 tabular-nums`}
                     />
                   </td>
                   <td className="md:p-3">
                     <span className="mb-1 block text-xs text-muted-foreground md:hidden" aria-hidden>
                       On sale
                     </span>
-                    <label className="flex h-9 items-center gap-2">
+                    <label className="flex h-11 items-center gap-2 md:h-9">
                       <input
                         type="checkbox"
                         checked={d.isActive}
@@ -227,7 +232,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
                     <span className="mb-1 block text-xs text-muted-foreground md:hidden" aria-hidden>
                       New arrival
                     </span>
-                    <label className="flex h-9 items-center gap-2">
+                    <label className="flex h-11 items-center gap-2 md:h-9">
                       <input
                         type="checkbox"
                         checked={d.isNewArrival}
@@ -252,7 +257,7 @@ export function QuickEditTable({ rows: initialRows }: { rows: QuickRow[] }) {
             })}
           </tbody>
         </table>
-      </div>
+      </fieldset>
     </div>
   );
 }

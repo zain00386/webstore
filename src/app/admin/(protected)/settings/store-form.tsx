@@ -1,11 +1,11 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { LoaderCircle, MapPin, Save, Truck } from "lucide-react";
+import { MapPin, Save, Truck } from "lucide-react";
 import { toast } from "sonner";
 import type { StoreSettingsInput } from "@/lib/admin/store-settings-schema";
 import { FormField } from "@/components/forms/form-field";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/forms/submit-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { saveStoreSettings, type StoreSettingsState } from "./actions";
@@ -105,9 +105,9 @@ export function StoreSettingsForm({ initial }: { initial: StoreSettingsInput }) 
         </p>
       </fieldset>
 
-      <Button type="submit" size="pill" disabled={pending}>
-        {pending ? <LoaderCircle className="animate-spin" aria-hidden /> : <Save aria-hidden />} Save store & delivery
-      </Button>
+      <SubmitButton size="pill" pending={pending} pendingLabel="Saving…" icon={<Save aria-hidden />}>
+        Save store & delivery
+      </SubmitButton>
     </form>
   );
 }
